@@ -383,6 +383,7 @@
 %%%%%%%% Let's define our framework name HERE!
 \newcommand{\ours}{SSD-Insider}
 \newcommand{\rw}{ransomware}
+\newcommand{\nyang}[1]{\textcolor{blue}{#1}}
 
 \begin{document}
 %
@@ -1361,35 +1362,35 @@ minimal I/O stack interventions. Fig.~\ref{fig:expenv} illustrates a block diagr
 	\caption{Summary of training and test set for \ours{}}
 	\begin{tabular}{c|c|c|c}
 		\hline
-		Description & Application & Ransomware & Usage \\
+		Application Type & Application & Ransomware & Usage \\
 		\hline
+		\hline 
+		Ransom only & none & Locky.bbs & training  \\
+		Heavy overwriting& WPM (DataWiping) & none & training \\
+		Heavy overwriting& MySQL & none & training \\
+		Heavy overwriting& Dropbox & none & training \\
+		IO-intensive& CrystalDiskMark & Zerber.ufb & training \\
+		IO-intensive& IOMeter & Zerber.ufb & training \\
+		IO-intensive& hdtunepro & Zerber.ufb & training \\
+		Normal App& AutoCAD/VisualStudio install& Locky.bdf & training \\
+		Normal App& Chrome & Locky.bbs & training \\
+		Normal App& OutlookSync & Locky.bdf & training \\
+		Normal App& WindowUpdate & Locky.bdf & training \\
+		Normal App& Bittorrent & none & training \\
+		Normal App& Kakaotalk (SQLite) & none & training \\
 		\hline
-		Locky only & none & Locky.bbs & training  \\
-		WebSurfing+Ransom & Chrome & Locky.bbs & training \\
-		OutlookSync+Ransom & Outlook & Locky.bdf & training \\
-		SW Install+Ransom & SoftwareInstall & Locky.bdf & training \\
-		Update+Ransom & WindowUpdate & Locky.bdf & training \\
-		IOStress+Ransom & CrystalDiskMark & Zerber.ufb & training \\
-		IOStress+Ransom & IOMeter & Zerber.ufb & training \\
-		IOStress+Ransom & hdtunepro & Zerber.ufb & training \\
-		Data Wiping & WPM & none & training \\
-		Database & MySQL & none & training \\
-		P2P Down & Bittorrent & none & training \\
-		Cloud Storage & Dropbox & none & training \\
-		Sqlite & Kakaotalk & none & training \\
-		\hline
-		Wannacry only & none & Wannacry & testing \\ 
-		Cloud Storage & Dropbox & In-house (outplace) & testing \\
-		Data Wiping & WPM & In-house (outplace) & testing \\
-		SW Install & SoftwareInstall & In-house (inplace) & testing \\ 
-		Database & MySQL & In-house (inplace) & testing \\ 
-		PlayMovie & Pot player & In-house (inplace) & testing \\ 
-		OutlookSync & Outlook & In-house (inplace) & testing \\ 
-		P2P Down & Bittorrent & In-house (inplace) & testing \\ 
-		WebSurfing & Chrome & In-house (inplace) & testing \\ 
-		IOStress+Ransom & IOMeter & Crypto Shield & testing \\ 
-		Compression+Ransom & Badizip & Mole & testing \\ 
-		Encoding+Ransom & Pot encoder & Jaff & testing \\ 
+		Ransom only & none & Wannacry & testing \\ 
+		Heavy overwriting & Dropbox & In-house (outplace) & testing \\
+		Heavy overwriting & WPM & In-house (outplace) & testing \\
+		Heavy overwriting & MySQL & In-house (inplace) & testing \\ 
+		IO-intensive & IOMeter & Crypto Shield & testing \\ 
+		CPU-intensive & Badizip (Compression) & Mole & testing \\ 
+		CPU-intensive & Pot encoder (Video encode) & Jaff & testing \\ 
+		Normal App & AutoCAD/VisualStudio install & Globelmposter & testing \\ 
+		Normal App & Pot player (Video play) & In-house (inplace) & testing \\ 
+		Normal App & Outlook & In-house (inplace) & testing \\ 
+		Normal App & Bittorrent & In-house (inplace) & testing \\ 
+		Normal App & Chrome & In-house (inplace) & testing \\ 
 		\hline
 	\end{tabular}
 	\label{tab:benchmarks}
@@ -1429,7 +1430,7 @@ minimal I/O stack interventions. Fig.~\ref{fig:expenv} illustrates a block diagr
         \subfigure[Compression+Mole\label{compression-latency}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-cul-11.png}}
         \subfigure[Encoding+Jaff\label{encoding-latency}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-cul-12.png}}
         \caption{\ours{}'s detection latency: all of the ransomware in various working scenarios were detected 100\%
-        within 10 seconds.}
+        within 10 seconds. \nyang{This figure will be merged into a several groups.}}
         \label{fig:latency}
 \end{figure*}
 
@@ -1440,18 +1441,21 @@ Locky.bdf~\cite{lockybdf}, Locky.bbs~\cite{lockybbs}, Zerber.ufb~\cite{zerber},
 WannaCry~\cite{wannacry}, Jaff~\cite{jaff}, Mole~\cite{mole} and CryptoShield~\cite{cryptoshield}. 
 As well as those, we have artificially implemented new ransomwares that are not
 reported to the public using open source ransomewares from github~\cite{virgang,poc}
--- two of them have an `in-place update' encryption attack; the rest is based on an `out-of-place update'.
+-- one of them has an `in-place update' encryption attack; the other is based on an `out-of-place update'.
 To evaluate \ours{}'s performance,
-we set up the environment where ransomware runs with typical background applications 
-including two notable application classes: applications of which IO behavior includes many overwritings, 
-and CPU-intensive and IO-intensive applications. The background applications were 
-1) data wiping tool (DoD 5220.22-M), 2) software installation (Viusal studio 2015, AutoCAD 2016),  
-3) database activities (MySQL 5.5), 
-4) video playback (Daum pot player), 5) Cloud storage synchronization (Dropbox), 
-6) Email synchronization (Outlook), 7) P2P downloading (BitTorrent), 
-8) Web-surfing (Chrome), 9) IO stress tool (IOMeter, HDtunepro, CrystalDiskMark), 
-10) Sqlite activities (Kakaotalk), 11) Compression (Bandizip), and 
-12) Video encoding (Daum pot encoder). 
+we set up the environment where ransomware ran with typical background applications 
+including three disturbing application types: applications with high rate of overwritings, 
+CPU-intensive, and IO-intensive applications. Heavy overwriting applications confuses our detector,
+CPU/IO-intensive applications disturbs our detector by slowing down ransomware's activity.
+Even the normal application class included applications with relatively high IO compared to user's casual usage pattern.
+The background applications were divided into four types:
+1) Heavy overwriting type includes data wiping tool (WPM satisfying DoD 5220.22-M), cloud storage synchronization (Dropbox), and heavy database update (MySQL 5.5), 
+2) IO-intensive type includes IO stress tool such as IOMeter, HDtunepro, CrystalDiskMark, 
+3) CPU-intensive type includes compression (Bandizip), video encoding (Daum pot encoder),
+4) Normal app type includes video playback (Daum pot player),
+email synchronization (Outlook), P2P downloading (BitTorrent), web-browsing (Chrome), 
+SQLite activities (Kakaotalk), software installation such as Viusal studio 2015 and AutoCAD 2016.
+
 Various combinations of a ransomware and a background application were used 
 for learning decision trees with ID3, and also for performance evaluation. 
 The whole dataset and evaluation scenarios for the experiment are summarized in Table~\ref{tab:benchmarks}. 
@@ -1538,7 +1542,7 @@ times are short enough.
 \end{figure}
 
 {\noindent\bf Data consistency:} 
-Finally, we evaluate the effect of \ours{} on data consistency.
+Finally, we evaluate \ours{}'s capability on data consistency.
 For our evaluation, we intentionally expose a host system to a
 ransomware program, which eventually results in the pause of write
 operations and requires users to reboot the system for data
