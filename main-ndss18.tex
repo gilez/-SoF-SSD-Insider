@@ -80,6 +80,7 @@
 \usepackage{booktabs} % For formal tables
 \usepackage{color}
 \usepackage{hyperref}
+\usepackage{xspace}
 \hypersetup{  
 	pdfpagemode=pagewidth,
 	plainpages=false, 
@@ -191,7 +192,7 @@
 
 % *** MATH PACKAGES ***
 %
-\usepackage[cmex10]{amsmath}
+%\usepackage[cmex10]{amsmath}
 % A popular package from the American Mathematical Society that provides
 % many useful and powerful commands for dealing with mathematics. If using
 % it, be sure to load this package with the cmex10 option to ensure that
@@ -390,11 +391,8 @@
 \title{\ours{}: Internal Defense of Solid-State Drive against Ransomware without Data Loss}
 
 
-% author names and affiliations
-% use a multiple column layout for up to three different
-% affiliations
-\author{\IEEEauthorblockN{SungHa Baek}
-\IEEEauthorblockA{Inha University\\
+% author names and affiliations % use a multiple column layout for up to three different % affiliations 
+\author{\IEEEauthorblockN{SungHa Baek} \IEEEauthorblockA{Inha University\\
 sungha@seclab.inha.ac.kr}
 \and
 \IEEEauthorblockN{Youngdon Jung}
@@ -494,92 +492,115 @@ This paper presents \ours{} that will be accepted by NDSS '18.
 
 \section{Introduction}
 
-Ransomware is a kind of malware that holds a user's data hostage to collect ransom. 
-To extort ransom from a person, it encrypts data by a strong encryption algorithm, 
-and the decryption key is released only when the ransom is paid. 
-Ransomwares usually work over C\&C network, and the ransom is paid by a cryptocurrency such as
-the bitcoin, so it is very hard to track down criminals.
-Combined with cryptocurrency and anonymous network over the Internet, 
-building ransomewares becomes a profitable business.
-In 2017, for example, when Nayana web hosting firm in Korea was 
-attacked by a crypto ransomware called Erebus, more than 3,400 web sites were damaged according
-to KISA (Korea Internet and Security Agency), and it had to pay  \$1.14 million 
-to the hacker in three installments to get the key for the passwords, but could not recover perfectly~\cite{zdnet}. 
-Similar attack was in US. In 2016, when the Hollywood Presbyterian Medical Center in the US was 
-infected by a crypto ransomware, it had to pay 40 bitcoins (about \$17,000) 
-to the attacker after 10 days of not being able to operate 
-because it could not acccess patients’ medical records~\cite{everette16}.
-Symantec reported 100 ransomwares were found in 2015, and
-the average ransom was USD 679 at the end of 2016, which is double of that in 2015. 
-Also, the industry that rasomwares aim at is not limited to service sectors 
-with 38 percent of organizational
-infections, but also manufacturing sectors with 17 percent of infections~\cite{symantec16}.
+Ransomware is a kind of malware that holds a user's data hostage to
+collect ransom.  To extort ransom from a person, it encrypts data
+by a strong encryption algorithm, and the decryption key is
+released only when the ransom is paid.  Ransomwares usually work
+over C\&C network, and the ransom is paid by a cryptocurrency such
+as the bitcoin, so it is very hard to track down criminals.
+Combined with cryptocurrency and anonymous network over the
+Internet, building ransomwares becomes a profitable business.  In
+2017, for example, when the Nayana web hosting firm in Korea was
+attacked by a crypto ransomware called Erebus, more than 3,400 web
+sites were damaged according to KISA (Korea Internet and Security
+Agency), and it had to pay  \$1.14 million to the hacker in three
+installments to get the key for the passwords, but could not
+recover perfectly~\cite{zdnet}.  Similar attack was in the US. In
+2016, when the Hollywood Presbyterian Medical Center in the US was
+infected by a crypto ransomware, it had to pay 40 bitcoins (about
+\$17,000) to the attacker after 10 days of not being able to
+operate because it could not access patients’ medical
+records~\cite{everette16}.  Symantec reported 100 ransomwares were
+found in 2015, and the average ransom was USD 679 at the end of
+2016, which is double of that in 2015.  Also, the industry that
+ransomwares aim at is not limited to service sectors with 38
+percent of organizational infections, but also manufacturing
+sectors with 17 percent of infections~\cite{symantec16}.
 
-Ransomwares are typically classified in two groups: locker and crypto ransomwares. 
-Locker ransomware prevents user from accessing to an infected machine, 
-while crypto ransomware locks user's data to prevent the user from accessing files.
-The most well-known ransomwares are CryptoWall, TeslaCrypt (a.k.a. AlphaCrypt), and Locky. 
-Most of newly discovered ransomwares in 2016 are crypto ransomware, whereas around 80 percent
-were crypto ransomwares in 2015~\cite{symantec16}. 
-Therefore, more attention should be paid to crypto ransomwares, and in this paper, 
-our target is not locker but crypto ransomwares.
+Ransomwares are typically classified in two groups: locker and
+crypto ransomwares.  Locker ransomware prevents users from
+accessing to an infected machine, while crypto ransomware locks
+user's data to prevent the user from accessing files.  The most
+well-known ransomwares are CryptoWall, TeslaCrypt (a.k.a.
+AlphaCrypt), and Locky.  Most of newly discovered ransomwares in
+2016 are crypto ransomware, whereas around 80 percent were crypto
+ransomwares in 2015~\cite{symantec16}.  Therefore, more attention
+should be paid to crypto ransomwares, and in this paper, our target
+is not locker but crypto ransomwares.
 
-There have been many research works on ransomware detection and analysis mostly in application level. 
-Some works focus on ransomware's behavior using structural entropy and Hidden Markov Model~\cite{canfora16}
-or behavior to use high volume of encryption system calls~\cite{andronio15}.
-Most of the works are, however, software tools running in application layer,
-monitoring changes of files' meta data such as file name, file size, magic number, 
-or changes of file contents~\cite{scaife16,andronio15,kim94}.
-The most notable works among file monitoring tools were 
-Unveil and CryptoDrop~\cite{scaife16,kharaz}, 
-which is an early-warning detection system of ransomware's suspicious behavior. 
-However, application-level monitoring has some limitations: 1) It cannot prevent ransomeware activity unless
-a user has installed a vaccine software. It is obvious that victims of ransomewares had not their
-computers installed any anti-ransomware software. 2) Data loss is unavoidable, because files 
-that have been encrypted before the detector recognizes the attack cannot be recovered. Thus, one of
-the most important evaluation criteria is detection latency.
-3) Application-level monitoring consumes a lot of
-resources. It has to monitor every IO and every file system modification. Sometimes, to detect
-a ransomware feature, it constantly involves file IO, which will negatively impact the system's
-performance. 4) Because most of the ransomwares are developed
-to target Microsoft Windows operating system, defense against the attack for other operating
-systems such as Linux and MacOS has not been relatively well studied. Therefore, a universal 
-application-level defense system cannot be developed, but multiple versions of the defense
-system should be developed considering the unique features of each platform
-(file system, operating system, hardware configuration, etc.).  
+There have been many research works on ransomware detection and
+analysis mostly in the application level.  Some works focus on
+ransomware's behavior using structural entropy and Hidden Markov
+Model~\cite{canfora16} or behavior to use high volume of encryption
+system calls~\cite{andronio15}.  Most of the works are, however,
+software tools running in the application layer, monitoring changes
+of files' metadata such as file name, file size, magic number, or
+changes of file contents~\cite{scaife16,andronio15,kim94}.  The
+most notable works among file monitoring tools were Unveil and
+CryptoDrop~\cite{scaife16,kharaz}, which are an early-warning
+detection system of ransomware's suspicious behavior.  However, the
+application-level monitoring has some limitations: 1) It cannot
+prevent ransomware activities unless a user has installed a vaccine
+software. It is obvious that victims of ransomwares had not their
+computers installed any anti-ransomware software. 2) Data loss is
+unavoidable, because files that have been encrypted before the
+detector recognizes the attack cannot be recovered. Thus, one of
+the most important evaluation criteria is detection latency.  3)
+The application-level monitoring consumes a lot of resources. It
+has to monitor every IO and every file system modification.
+Sometimes, to detect a ransomware feature, it constantly involves
+file IOs, which will negatively impact the system performance. 4)
+Because most of the ransomwares are developed to target Microsoft
+Windows operating systems, defense against the attack for other
+operating systems such as Linux and MacOS has not been relatively
+well studied.  Therefore, a universal application-level defense
+system cannot be developed, but multiple versions of the defense
+system should be developed considering the unique features of each
+platform (file system, operating system, hardware configuration,
+etc.).  
 
-In this paper, we propose a novel approach to ransomware detection and recovery 
-by introducing a concept of flash-memory internal defense technology. 
-By introducing six invariant features of ransomware 
-and by taking advantage of SSD's out-of-place deletion,
-we developed a behavior-based detection and recovery system called ``\ours{}''.
-Being equipped with ransomware detection and recovery algorithms from the first place,
-a flash-memory system can effectively detect ransomwares' activity and can perfectly recover user's data,
-1) even when a user does not run any ransomware monitoring application. 
-2) even when OS or middlewares do not execute any ransomware monitoring task.
-3) even when it works for unknown OS, an unknown filesystems, and unknown applications.
+In this paper, we propose a novel approach to ransomware detection
+and recovery by introducing a concept of NAND flash internal
+defense technology.  By introducing six invariant features of
+ransomware and by taking advantage of SSD's out-of-place nature, we
+develop a behavior-based detection and recovery system that runs
+inside flash-based SSDs as a form of storage firmware.  Being
+equipped with ransomware detection and recovery algorithms from the
+first place, flash-based SSDs can effectively detect ransomwares'
+activity and can perfectly recover user's data,
+1) even when a user does not run any ransomware monitoring application,
+2) even when OS or middleware does not execute any ransomware monitoring task,
+3) even when it works for an unknown OS, an unknown file system and unknown applications, and
 4) even when it confronts with unknown ransomwares.
 
-We realize the ransomware detection/recovery algorithms in a system called SSD-Insider
-that works as a universal platform for ransomware detection and recovery, 
-and deliver the following contributions:
+We realize the ransomware detection/recovery algorithms in a
+system, called \textit{SSD-Insider}, which works as a universal
+platform for ransomware detection and recovery, and deliver the
+following contributions:
 \begin{itemize}
-\item We designed six invariant features to capture ransomware's behavioral characteristics
-only using block address, size, and type (R/W) of IO requests to SSD,
-and analyzed correlationship using various real-world ransomwares between those features and ransomware activity.
-\item A machine learning algorithm, the binary decision tree  with ID3 (Iterative Dichotomiser 3) 
-as its learning algorithm was shown to be good enough for the detection algorithm~\cite{quinlan86}.
-\item To show the feasibility of our system inside an SSD, we implemented \ours{} using 
-an open-channel SSD platform as a working prototype.
-\item We evaluated \ours{} using seven well-known ransomwares and in-house ransomwares 
-in the condition that various background applications were running for more realistic evalution.
-Our implementation of \ours{} showed 100\% detection accuracy, and its detection latency was 
-less than 10 seconds. 
-\item \ours{} recovered encrypted files within 1 second after its detection, 
-and no data loss was found after the recovery even with detection latency.
-\item Because \ours{} is built as an extra function of the FTL (File Translation Layer),
-recovery is not dependent upon any means of backup, but upon delayed deletion of blocks
-that is the intrinsic feature of flash memory system.
+\item We designed six invariant features to capture ransomware's
+behavioral characteristics only with a block address, a size, and
+a type of an IO request to an SSD, and analyzed a correlation
+between those features and ransomware activities using various
+real-world ransomwares.
+\item A simple machine learning algorithm, the binary decision tree
+with ID3 (Iterative Dichotomiser 3), was shown to be good enough
+for ransomware detection~\cite{quinlan86}.
+\item To show the feasibility of our system inside an SSD, we
+implemented \ours{} using an open-channel SSD platform as a working
+prototype.
+\item For realistic assessment, we evaluated \ours{} using seven
+well-known ransomwares and in-house ransomwares in the condition
+that various background applications were running.  Our
+implementation of \ours{} showed 100\% detection accuracy, and its
+detection latency was less than 10 seconds. 
+\item \ours{} recovered encrypted files within 1 second after its
+detection, and no data loss was found after the recovery even with
+detection latency.
+\item Because \ours{} is built as an extra function of a flash
+translation layer (FTL), a data recovery is not dependent upon any
+means of backup, but upon delayed deletion of flash blocks which is
+an intrinsic feature of NAND flash memory.
 \end{itemize}
 
 \section{Motivation}
