@@ -605,65 +605,76 @@ an intrinsic feature of NAND flash memory.
 
 \section{Motivation}
 
-\subsection{Limitations of legacy approaches}
+\subsection{Limitations of Legacy Approaches}
 
-It is necessary to define effective ransomware-specific features 
-so that a detector should recognize ransomware's activity immediately and accurately. 
-However, it is difficult to detect ransomware only by seeing their signatures, 
-because they change frequently their binary codes. 
-For example,  an interesting ``ransomware-as-a-service'' model called TOX was found in 2015, 
-which helps an inexperienced attacker to build easily a variant ransomware~\cite{walter15}. 
-They can easily evade anti-ransomware/firewall rule sets or spam filters. 
-This mutable nature of ransomware makes it harder to detect them only by signatures,
-and pushes the detection paradigm further into the realm of behavioral feature extraction.
+It is necessary to define effective ransomware-specific features so
+that a detector should recognize ransomware activity immediately
+and accurately.  However, it is difficult to detect ransomware only
+by seeing their signatures, because they change frequently their
+binary codes.  For example,  an interesting
+``ransomware-as-a-service'' model called TOX was found in 2015,
+which helps an inexperienced attacker to build easily a variant
+ransomware~\cite{walter15}.  They can easily evade
+anti-ransomware/firewall rule sets or spam filters.  This mutable
+nature of ransomware makes it harder to detect them only by
+signatures, and pushes the detection paradigm further into the
+realm of behavioral feature extraction.
 
-%we can expect that the volume of ransomware attacks  will rise. 
+{\bf File type-based or content-based detection loses data:} 
+The most recognizable change after/during a ransomware's activity
+is that a number of files are changed by their types or by
+contents.  Scaife \etal have observed and found important features
+that could be strong indicators of ransomware~\cite{scaife16}.
+Among them, the most important indicators include 1) file type
+change that is necessarily followed by ransomware activities and 2)
+similarity measure between a original file and its modified version
+-- since ransomware normally encrypts the victim file, the
+similarity is very low.  3) High entropy is also a strong evidence
+of encryption, but it is sometimes hard to be distinguished from
+compression that also has very high entropy. 4) A large number of
+file deletion may be an indicator, though it is relatively a weak
+signal considering that the deletion of many files happens usually
+regardless of ransomware action.  Since the content-based detection
+monitors a large volume of data in real time, it inevitably causes
+high CPU and memory overheads.  It involves many tweaks in OS,
+which requires privilege escalation for the monitoring software.
+Considering that anti-virus software can be infected as well, this
+approach is not desirable.  Accuracy of content-based detection is
+very high owing to the plenty of context information, but it cannot
+avoid data loss caused by detection latency. Thus, most works have
+focused on how to detect as early as possible to minimize the
+unavoidable data loss.  File type-based detection involves smaller
+overhead than content-based detection, but it can be easily evaded
+by ransomware to alter forcibly file extensions or magic numbers
+for the file type.
 
+{\bf Application layer detection might not be secure:}
+Most of the solutions against ransomware run in the application
+layer, but they cannot secure the system in the worst case.  First
+of all, users should be aware of the danger of ransomware, and they
+should install anti-ransomware software before being infected.
+However, a report in 2013 showed that 24\% of PCs were unprotected
+by any anti-virus software~\cite{unprotected}.  Also, more than
+90\% of devices had not run a full system scan using their
+anti-virus software within the last seven days, and even worse,
+anti-virus definitions were out of date in more than 15\% of
+devices~\cite{antivirus}. Cracked anti-virus software could get PC
+infected as well.  Killing a ransomware detector process would not
+be a problem to the creator of ransomware when characteristics of
+most commercial detector software are well known in advance.
 
-{\noindent\bf File type-based or content-based detection loses data:} 
-The most recognizable change after/during 
-a ransomware's activity is that a number of files are changed by their types or by contents. 
-Scaife \etal have observed and found ransomeware features that could be strong indicators 
-of ransomware~\cite{scaife16}.
-Among them, most-important indicators include file type change that is necessarily followed by
-ransomware's activity, and similarity measure between a original file and its modified
-version (ransomware normally encrypts the victim file, so the similarity is very low).
-High entropy is also a strong evidence of encryption, which is, however, sometimes hard to be distinguished
-from compression that also has very high entropy. A large number of file deletion may be an indicator, though
-it is relatively a weak signal considering that that happens usually regardless of ransomware action. 
-Since the content-based detection monitors in real-time a large volume of data in a file system, 
-it necessarily causes high CPU and memory overhead. It involves many tweaks in OS,
-which requires sometimes privilege escalation for the monitoring software. 
-Considering that anti-virus software can be infected also, this approach is not desirable.
-Accuracy of content-based detection is very high owing to the plenty of context information, 
-but it cannot avoid data loss caused by detection latency. Thus, most works have focused on 
-how to detect as early as possible to minimize the unavoidable data loss. 
-File type-based detection involves smaller overhead than content-based detection, 
-but it can be easily evaded by ransomware to alter forcibly file extensions or magic numbers for the file type.
-
-{\noindent\bf Application layer detection might not be secure:}
-Most of the solutions against ransomware run in application layer, 
-but ransomware detector in application layer cannot secure the system in the worst case.
-First of all, users should be aware of the danger of ransomware, 
-and they should install a anti-ransomware solution before being infected. 
-However, a report in 2013 showed that 24\% of PCs were unprotected by any anti-virus software~\cite{unprotected}. 
-Also, more than 90\% of devices had not run a full system scan using their anti-virus software 
-within the last seven days, and even worse, anti-virus definitions were out of date in more than 15\% 
-of devices~\cite{antivirus}. Cracked anti-virus software could get PC infected, also.
-Killing a ransomware detector process would not be a problem to the creator
-of ransomware when characteristics of most commercial detector software are well known in advance.
-
-\subsection{Our approach to ransomware detection and recovery}
-{\noindent\bf Factory-installed \ours{} not allowing any data loss:} 
-Our approach is not to detect ransomware in application layer or in OS layer, 
-but to put the detector inside SSD. By doing so, we can solve the most crucial problems 
-in ransomware detection: 
+\subsection{Our Approach to Ransomware Detection and Recovery}
+{\bf Factory-installed \ours{} not allowing data loss:} Our
+approach is not to detect ransomware in the application layer or in
+the OS layer, but to put the detector inside an SSD. By doing so,
+we can solve the most crucial problems in ransomware detection: 
 \begin{itemize}
     \item Protection of users having no anti-ransomware software installed
     \item Data loss caused by detection latency
 \end{itemize}
 
-To realize the idea, we have to solve to the following challenging problems:
+To realize the idea, we have to solve the following challenging
+problems: 
 \begin{itemize}
     \item How to make \ours{} resistant against unknown ransomware, which means \ours{} should not be signature-based,
     but a behavior-based detector.
