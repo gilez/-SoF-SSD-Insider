@@ -1614,9 +1614,9 @@ left.
 	\caption{Impact of \ours{} on I/O elapsed times for ransomware-infected SSDs with various background applications running}
 	\label{fig:flash-avg-resp}
 \end{figure}
-{\bf I/O Elapsed time:} 
+{\bf I/O elapsed time:} 
 We evaluated the impact of the \ours{} algorithms on I/O elapsed
-times.  For the 13 traces summarized in
+times.  For the 12 traces summarized in
 Table~\ref{fig:flash-avg-resp}, we measured read and write elapsed
 times increased by \ours{} algorithms which are depicted in
 Fig.~\ref{fig:flash-avg-resp}.  Fig.~\ref{fig:flash-avg-resp}
@@ -1669,7 +1669,7 @@ page copies caused by SSD-Insider were almost zero. This
 indicates that the effect of the \ours{} algorithms on the increase
 of garbage collect costs is negligible.
 
-{\bf DRAM Requirement:}
+{\bf DRAM requirement:}
 For the ransomware detection and recovery, \ours{} has to maintain additional
 data structures like a hash table, a counting table, and a recovery queue.
 TABLE~\ref{tab:size_summary} summarizes the size of DRAM required by \ours{}
@@ -1688,56 +1688,70 @@ than 1 GB DRAM~\cite{hitachi-ssd, samsung-ssd, phison-ssd}.
 \end{figure}
 
 \section{Discussion}
-\subsection{Time window size}
-{\bf Memory overhead:}
-As already shown in section~\ref{sec:peval}, the detection rate increases
-according to the size of the time window $N$, and it reached to 100\% around 10s.
-Under some environment where ransomware's working speed slows down owing to
-heavy IO or heavy computation, the window size might have to be enlarged for catching
+%\subsection{Time window size}
+{\bf Memory overhead according to a time window size:} 
+As already shown in section~\ref{sec:peval}, the detection rate
+increases according to the size of the time window $N$, and it
+reached to 100\% around 10s.  Under some environment where
+ransomware's working speed slows down owing to heavy IO or heavy
+computation, the window size might have to be enlarged for catching
 rasomware, which might also increase memory usage of \ours{}.
-However, we observed that the amount of memory did not increase rapidly in most ransomware
-experiments as shown in Fig.~\ref{fig-wsize}. With a 30s time window, the amount of memory
-required for the counting table was at most 9MB. 
-We reason that the overwriting volume itself
-did not increase but just a similar amount of overwritings spread over the longer  
-period of time rather slowly. This observation allowed us to adjust flexibly the window size
-depending on the situation without concerning the memory usage. 
+However, we observed that the amount of memory did not increase
+rapidly in most ransomware experiments as shown in
+Fig.~\ref{fig-wsize}. With a 30s time window, the amount of memory
+required for the counting table was at most 9MB.  We reason that
+the overwriting volume itself did not increase but just a similar
+amount of overwritings spread over the longer  period of time
+rather slowly. This observation allowed us to adjust flexibly the
+window size depending on the situation without concerning the
+memory usage. Note that Fig.~\ref{fig-wsize} does not include the
+memory requirement for the recovery table which reaches 90 MB when
+the time window is 30s. 90 MB memory usage is not a burden,
+considering that convental SSDs have a plenty of DRAM resources,
+but the recovery queue size can be limited to several MBs if the
+SSD-Insider FTL keeps a part of it in NAND flash. We consider this
+as one of our future work.
 
 {\bf Delayed overwriting as a ransomware's strategy:}
-Another issue on the window size is the possibility that a new type of 
-ransomware might appear to evade our detection algorithm. It can avoid being detected 
-by reading and encrypting  a large number of files, storing the data in memory, 
-waiting until the window expires, and then finally executing in-place update. 
-With this strategy, this imaginary ransomware might be able to avoid the current version of \ours{},
-but this can be resolved by monitoring overwriting behavior from FTL update.
-Instead of maintaining read accesses in \ours{}'s counting table, we can take advantage of
-FTL's mapping table to see whether a certain write request is for overwriting or for fresh write.
-All the six invariant feature values can be calculated by maintaining only those counters such
-as the total IO, the overwriting counters, and the run-lengths over a time window.
-This off-loading enables \ours{} to use a larger time window without concerning memeory overhead, 
-and allows it long-term monitoring, which in turn makes \ours{} strong against the imaginary ransomware 
-with the delayed overwriting strategy. We leave the investigation of off-loading issues for future work.
+Another issue on the window size is the possibility that a new type
+of ransomware might appear to evade our detection algorithm. It can
+avoid being detected by reading and encrypting  a large number of
+files, storing the data in memory, waiting until the window
+expires, and then finally executing in-place update.  With this
+strategy, this imaginary ransomware might be able to avoid the
+current version of \ours{}, but this can be resolved by monitoring
+overwriting behavior from FTL update.  Instead of maintaining read
+accesses in \ours{}'s counting table, we can take advantage of
+FTL's mapping table to see whether a certain write request is for
+overwriting or for fresh write.  All the six invariant feature
+values can be calculated by maintaining only those counters such as
+the total IO, the overwriting counters, and the run-lengths over a
+time window.  This off-loading enables \ours{} to use a larger time
+window without concerning memeory overhead, and allows it long-term
+monitoring, which in turn makes \ours{} strong against the
+imaginary ransomware with the delayed overwriting strategy. We
+leave the investigation of off-loading issues for future work.
 
-\subsection{File system issue} 
-The current version of \ours{} detection and recovery
-algorithms targeted journaling file systems, such as NTFS and
-EXT2/3/4, because these are the most widely deployed ones in
-various computing platforms. Currently, \ours{} is unable
-to detect behaviors of ransomware under different types of file
-systems like log-structured file systems (LFS) and copy-on-write
-file systems (COW).  Unlike journaling file systems, LFS and COW
-were designed to append almost all of the data to storage media
-sequentially, avoiding in-place updates or overwrites of user data.
-Since our detection algorithm identifies ransomware attacks based
-on frequent in-place update behaviors of ransomwares, it wouldn't
-work properly under LFS and COW file systems. One promising way to
-address the above problem is to enhance a host-to-storage interface
-(e.g., SATA and NVMe) so that more detailed file-system level
-information, such as file-description numbers and offsets, is
-delivered to the FTL.  This allows us to keep track of I/O access
-patterns of ransomware on a file basis, so \ours{} would be
-able to identify ransomware behaviors in a host system more
-accurately without relying on LBA-based overwriting patterns.
+{\bf File system dependency issue:} 
+The current version of \ours{} detection and recovery algorithms
+targeted journaling file systems, such as NTFS and EXT2/3/4,
+because these are the most widely deployed ones in various
+computing platforms. Currently, \ours{} is unable to detect
+behaviors of ransomware under different types of file systems like
+log-structured file systems (LFS) and copy-on-write file systems
+(COW).  Unlike journaling file systems, LFS and COW were designed
+to append almost all of the data to storage media sequentially,
+avoiding in-place updates or overwrites of user data.  Since our
+detection algorithm identifies ransomware attacks based on frequent
+in-place update behaviors of ransomwares, it wouldn't work properly
+under LFS and COW file systems. One promising way to address the
+above problem is to enhance a host-to-storage interface (e.g., SATA
+and NVMe) so that more detailed file-system level information, such
+as file-description numbers and offsets, is delivered to the FTL.
+This allows us to keep track of I/O access patterns of ransomware
+on a file basis, so \ours{} would be able to identify ransomware
+behaviors in a host system more accurately without relying on
+LBA-based overwriting patterns.
 
 \begin{table}[t]
 	\centering
@@ -1756,7 +1770,7 @@ accurately without relying on LBA-based overwriting patterns.
 \end{table}
 
 
-\subsection{Sudden power failure issue}
+{\bf Sudden power failure issue:}
 \ours{} maintains the recovery queue in volatile DRAM and does
 not keep its copy in persistent NAND flash. If a sudden power
 failure happens (owing to any reasons) while ransomwares are

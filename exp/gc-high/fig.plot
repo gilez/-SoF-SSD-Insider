@@ -9,7 +9,7 @@ set size 1.0, 0.8
 
 #set yrange[0.7:1.3]
 
-set key top left
+set key top right
 
 #set xtics nomirror rotate by -90 scale 0 ",10"
 set xtics nomirror rotate by -45 scale -1
