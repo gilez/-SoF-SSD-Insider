@@ -1915,25 +1915,29 @@ at the SSD device level.
 
 
 \section{Conclusion}
-In this paper, we have proposed a new set of behavioral features of 
-ransomware, which is invariant across various ransomwares 
-and lightweight enough to be used in a resource-limited embedded 
-environment such as a firmware of SSD.
-By presenting various experimental results, the features have been shown to be
-strong indicators of ransomware activity. 
-These features were used to develop a ransomware detection algorithm.
-Also, we have developed a perfect recovery algorithm of infected blocks 
-using the delayed deletion feature of SSD, which is intrinsic to SSD.
-To show the feasibility, the detection and the recovery algorithms were implemented 
-as a part of firmware in an open-channel SSD as a working prototype called \ours{}.
-With eight real-world ransomwares and various background applications running,
-we have evaluated \ours{} in terms of detection accuracy, detection latency, 
-recovery time, and data consistency. Also, we scrutinized \ours{}'s cost in terms of
-I/O elapsed time, garbage collection, and DRAM requirement. All the evaluation results
-show that \ours{} is accurate and fast for detection, and 
-it can perfectly recover an infected SSD in a second without any data loss.  
-\ours{} opens another direction of anti-ransomware research, and further defense and 
-recovery algorithms on other malicious wares are left for future works.
+In this paper, we have proposed a new set of behavioral features of
+ransomware, which is invariant across various ransomwares and
+lightweight enough to be used in a resource-limited embedded
+environment such as a firmware of an SSD.  By presenting various
+experimental results, the features have been shown to be strong
+indicators of ransomware activity.  These features were used to
+develop a ransomware detection algorithm.  Also, we have developed
+a perfect recovery algorithm of infected files using the delayed
+deletion feature of SSD, which is intrinsic to an SSD.  To show the
+feasibility, the detection and the recovery algorithms were
+implemented as a part of firmware in an open-channel SSD as a
+working prototype called \ours{}.  With eight real-world
+ransomwares and various background applications running, we have
+evaluated \ours{} in terms of detection accuracy, detection
+latency, recovery time, and data consistency. In addition, we
+scrutinized \ours{}'s cost in terms of I/O elapsed time, garbage
+collection, and DRAM requirement. All the evaluation results showed
+that \ours{} was accurate and fast for detection, and it could
+perfectly recover an infected SSD in a second without any data
+loss.  We believe that \ours{} opens a new direction of
+anti-ransomware research -- better defense and recovery algorithms
+on other malicious software would be developed based on the similar
+concept of SSD-Insider, which are left for our future work.
 
 % conference papers do not normally have an appendix
 
