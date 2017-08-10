@@ -1,12 +1,12 @@
 CloudStorage	0
 Compression	0
 Database	0
-Encoding	0
+Video\Encode	0
 Install	0
 WebSurfing	0
 Wannacry	21764599
 P2PDown	0
-Data\wiping	0
-Play\Movie	0
+Data\Wiping	0
+Video\Decode	0
 IOStress	0
 OutlookSync	0

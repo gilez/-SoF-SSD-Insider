@@ -1,12 +1,12 @@
 CloudStorage	896
 Compression	8678
 Database	370
-Encoding	10582
+Video\Encode	10582
 Install	20
 WebSurfing	0
 Wannacry	30942
 P2PDown	896
-Data\wiping	0
-Play\Movie	0
+Data\Wiping	0
+Video\Decode	0
 IOStress	0
 OutlookSync	0

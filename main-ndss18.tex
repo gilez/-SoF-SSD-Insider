@@ -91,7 +91,7 @@
 	bookmarksnumbered
 }
 \usepackage{newtxmath}
-
+\usepackage{colortbl}
 \pagestyle{plain}
 
 
@@ -520,10 +520,10 @@ sectors with 17 percent of infections~\cite{symantec16}.
 
 Ransomwares are typically classified in two groups: locker and
 crypto ransomwares.  Locker ransomware prevents users from
-accessing to an infected machine, while crypto ransomware locks
-user's data to prevent the user from accessing files.  The most
-well-known ransomwares are CryptoWall, TeslaCrypt (a.k.a.
-AlphaCrypt), and Locky.  Most of newly discovered ransomwares in
+accessing to an infected machine, while crypto ransomware such as
+WannaCry, CryptoWall, TeslaCrypt (a.k.a. AlphaCrypt), and Locky locks
+user's data to prevent the user from accessing files. 
+Most of newly discovered ransomwares in
 2016 are crypto ransomware, whereas around 80 percent were crypto
 ransomwares in 2015~\cite{symantec16}.  Therefore, more attention
 should be paid to crypto ransomwares, and in this paper, our target
@@ -590,7 +590,7 @@ for ransomware detection~\cite{quinlan86}.
 \item To show the feasibility of our system inside an SSD, we
 implemented \ours{} using an open-channel SSD platform as a working
 prototype.
-\item For realistic assessment, we evaluated \ours{} using seven
+\item For realistic assessment, we evaluated \ours{} using eight
 well-known ransomwares and in-house ransomwares in the condition
 that various background applications were running.  Our
 implementation of \ours{} showed 100\% detection accuracy, and its
@@ -664,51 +664,59 @@ infected as well.  Killing a ransomware detector process would not
 be a problem to the creator of ransomware when characteristics of
 most commercial detector software are well known in advance.
 
-\subsection{Our Approach to Ransomware Detection and Recovery}
-{\bf Factory-installed \ours{} not allowing data loss:} Our
-approach is not to detect ransomware in the application layer or in
+\subsection{Our Approach: Factory-installed ransomware detector}
+Our approach is not to detect ransomware in the application layer or in
 the OS layer, but to put the detector inside an SSD. By doing so,
 we can solve the most crucial problems in ransomware detection: 
-\begin{itemize}
-    \item Protection of users having no anti-ransomware software installed
-    \item Data loss caused by detection latency
-\end{itemize}
+1) Protection of users having no anti-ransomware software installed, 
+and 2) Data loss caused by detection latency.
 
+{\bf Two challenging problems for detection and for recovery:}
 To realize the idea, we have to solve the following challenging
 problems: 
 \begin{itemize}
-    \item How to make \ours{} resistant against unknown ransomware, which means \ours{} should not be signature-based,
-    but a behavior-based detector.
-    \item \ours{} should work as a part of SSD firmware, which means that it should
+    %\item How to make \ours{} resistant against unknown ransomware, which means \ours{} should not be signature-based,
+    %but a behavior-based detector.
+    \item Lightweight detection that can be executed at firmware: 
+    \ours{} should work as a part of SSD firmware, which means that it should
     detect ransomware only with limited resources (\eg CPU power and memory). 
-    Watching the content alteration incurs too much overhead to an SSD system,
-    and thus, \ours{} should be able to detect ransomware activity 
+    Monitoring content alteration incurs too much overhead to an SSD system as we discussed,
+    and thus, \ours{} should be able to extract ransomware's behavioral characteristics
     by seeing only IO request headers instead of seeing the whole request data, 
     which include only a logical block address, read/write type, and the size of data. 
     This limited view on ransomware activity makes detection more difficult,
     considering that much more context and information are available to application layer detectors 
     such as file names, file sizes, file access time, process IDs, process names, and the amount of memory 
     the process is using, etc. 
-    \item How to provide perfect data recovery even under detection latency up to XXX hour delay. 
+    \item Perfect recovery: How to provide perfect data recovery even under detection latency. 
     SSD does not have in-place update capability, so we are going to take advantage of the property
-    to perfectly recover the data encrypted even with detection latency.
+    to perfectly recover the data encrypted within a second.
 \end{itemize}
 
 \begin{figure}
 	\centering
-    \subfigure[Correlation between active period of ransomware and the number of overwritings\label{fig-owio-cor}]{\includegraphics[width=0.24\textwidth]{fig/det-fig2a.png}}
-	\subfigure[Cummulative values of overwritings\label{fig-owio-acc}]{\includegraphics[width=0.24\textwidth]{fig/det-fig1a.png}}
-	\caption{Ransomware's overwriting behavior (WannaCry, Jaff, Mole, and CryptoShield ransomwares)}
+    %\subfigure[Correlation between active period of ransomware and the number of overwritings for one second ($=OWIO$)\label{fig-owio-cor}]{\includegraphics[width=0.24\textwidth]{fig/det-fig2a.png}}
+	%\subfigure[Cummulative values of overwritings\label{fig-owio-acc}]{\includegraphics[width=0.24\textwidth]{fig/det-fig1a.png}}
+    \subfigure[Ransomware overwriting behavior\label{fig-owio-cor}]{\includegraphics[width=0.24\textwidth]{fig/det-fig2a.png}}
+	\subfigure[Overwriting frequency\label{fig-owio-acc}]{\includegraphics[width=0.24\textwidth]{fig/det-fig1a.png}}
+	\caption{Ransomware's overwriting behavior (WannaCry, Jaff, Mole, and CryptoShield ransomwares):
+	(a) Correlation between active period of ransomware and the number of overwritings for one second ($=OWIO$), and 
+	(b) Cummulative values of overwritings\label{fig-owio}}
 \end{figure}
 
-{\noindent\bf Lightweight and invariant feature for detection of ransomware:}
+Our approach to address two issues is to use overwriting patterns 
+as ransomware features for detection
+and to take advantage of SSD's delayed deletion which is
+an intrinsic feature of NAND flash memory for recovery.
+
+{\bf Overwriting patterns as lightweight and invariant features:}
 To recognize ransomware activity by viewing only the distribution of IO request headers 
 instead of full payload using limited resources, we need lightweight and invariant features of ransomware.
 Also, to deal with unknown ransomware, we have paid attention to a ransomware's very unique behavior,
 {\em overwriting}. By overwriting, we mean that after a block is read, the block with the same logical
 block address (LBA) is updated to remove the data in the block.
 Fig.~\ref{fig-owio-cor} shows how long WannaCry and Mole ransomwares were in action 
-during 10-second windows when overwriting frequency varies. It shows that the more frequent overwriting occurs, 
+during 1-second time slices when overwriting frequency varies. It shows that the more frequent overwriting occurs, 
 the longer WannCry and Mole have been in action.
 Fig.~\ref{fig-owio-acc} shows the cumulative graph of the number of overwriting requests for four ransomware 
 (WannaCry, Jaff, Mole, and CryptoShield) and four normal applications (Data wiping, P2P download, 
@@ -720,7 +728,7 @@ overwriting them either by encrypted data or by other meaningless garbage data. 
 as soon as possible to decrease the user's chance of recovery. We note that overwriting is defined by the logical
 address space.
 
-{\noindent\bf Perfect and instant recovery:}
+{\bf Using SSD's delayed deletion for perfect and instant recovery:}
 In order to deal with an inability of in-place updates of NAND flash, the logical block
 address is separated from the physical block address in flash-based SSDs.
 Then, storage firmware, called a flash translation layer (FTL), running inside SSDs
@@ -854,21 +862,20 @@ where $N$ is a parameter relevant to detection speed and accuracy:
 
 \begin{itemize}
 \item $OWIO$ denotes the number of overwritings for a time slice (\eg 1s). 
-$N$ time slices.
 \item $OWST$ is the fraction of overwritten blocks over the total number of write requests during a time window.
-\item $PWIO$ is the number of overwritings for a time window consisting of 
+\item $PWIO$ is the number of overwritings for a time window consisting of $N$ time slices.
 \item $AVGWIO$ is the average length of continuously overwritten blocks in a current time window.
-\item $OWSLOPE$ is the fraction of the number of overwritings during a current time slice.
-over the average number of writings over the previous time slice.
+\item $OWSLOPE$ is the fraction of the number of overwritings during a current time slice
+over the total number of overwritings over the previous time slice.
 \item $IO$ is the fraction of the number of overwritings during a current time slice 
 over the average number of writings over the previous time slice
 \end{itemize}
 
-{\noindent\bf OWIO:} $OWIO$ is the most important feature indicating the property of reading, encrypting and overwriting 
+{\bf OWIO:} $OWIO$ is the most important feature indicating the property of reading, encrypting and overwriting 
 the same block of a document file for a short time. 
 Fig.~\ref{fig-owio-cor} shows how long WannaCry and Mole ransomwares were in action 
-during 1-second windows varying the size of $OWIO$. 
-It shows that the more frequent overwriting occurs, the longer WannCry and Mole have been in action.
+during 1-second windows varying the value of $OWIO$. 
+It shows that the more frequent overwriting occurs, the longer WannaCry and Mole have been in action.
 Also, the overwriting frequency of normal applications, as can be seen in Fig.~\ref{fig-owio-acc}, 
 is not as high (less than 100K) as that of ransomwares except data wiping application, 
 which will be treated in section~\ref{sec:accuracy}.
@@ -887,16 +894,17 @@ and that of CryptoShield is as low as that of cloud storage update and P2P downl
 Therefore, more features distinguishing ransomwares from these applications are necessary
 to detection precisely. 
 
-{\noindent\bf OWST:} One of hard-to-distinguishing applications is data wiping as we have seen in Fig.~\ref{fig-owio-acc}.
-The noticeable feature is how many overwritings (duplicate overwritings over a single block are counted only once) 
-there are among writing requests within a time window.
+{\bf OWST:} One of hard-to-distinguishing applications is data wiping as we have seen in Fig.~\ref{fig-owio-acc}.
+The noticeable feature is how many overwritings 
+there are among writing requests within a time window,
+where duplicate overwritings over a single block are counted only once.
 Typical data wiping applications require multiple overwritings over a single block to securely erase data,
 which incurs the low $OWST$ value compared to that of ransomware. For example, DoD 5220.22-M~\cite{DoD5220} requires
 7 overwritings per one read IO over the same block. Fig.~\ref{fig-owst-acc} confirms 
 that $OWST$ captures the high rate of overwriting in write IOs that occur during ransomware operation.
 Also, the strong correlation between $OWST$ and the active period of ransomware is clearly shown in Fig.~\ref{fig-owst-cor}.
 
-{\noindent\bf PWIO:} Sometimes, CPU-intensive jobs or IO-intensive jobs might be running 
+{\bf PWIO:} Sometimes, CPU-intensive jobs or IO-intensive jobs might be running 
 while a ransomware is in action.
 In this case, the speed of ransomware slows down, and thus, 
 IO requests of ransomware are dispersed over 
@@ -906,14 +914,14 @@ during a longer-term window (10s) instead of a short-term slice (1s) of $OWIO$
 captures it very well as shown in Fig.~\ref{fig-pwio-acc}. Also, its correlation is 
 shown to be strong with the ransomware activity period as shown in Fig.~\ref{fig-pwio-cor}.
 
-{\noindent\bf AVGWIO:} $AVGWIO$ captures the characteristics of ransomware's attack target. 
+{\bf AVGWIO:} $AVGWIO$ captures the characteristics of ransomware's attack target. 
 Because ransomware mainly targets documents and images, 
 it does not involve overwriting operations
 over many continuous blocks unlike data wiping, defragmentation, and DB update.  
 Thus, the length of continously overwritten blocks is relatively shorter than that of those applications, which is shown in Fig.~\ref{fig-avgwio-acc}. Its correlation with the active 
 period is shown in Fig.~\ref{fig-avgwio-cor}.
 
-{\noindent\bf Secondary features:} These four features are the principal features for \ours{}.
+{\bf Secondary features:} These four features are the principal features for \ours{}.
 The other auxilary features include $IO$ and $OWSLOPE$, 
 where $OWSLOPE$ captures ransomware's behavior of abrupt increase of overwriting volume.
 Their correlations with ransomware's active period are shown in Fig.~\ref{fig-io} and
@@ -960,14 +968,14 @@ For the training algorithm of the tree, we used ID3~\cite{quinlan86}.
 \end{figure*}
 
 
-{\noindent\bf Data structure for detection:}
+{\bf Data structure for detection:}
 All I/O requests are to be monitored for ransomware detection, and each request consists of four items: 
 Time, LBA, IOMode, and Length. Time denotes when the request was generated in the system. 
 LBA is the starting address where the data is read or written, 
 IOMode represents the request type (R/W), 
 and Length is the number of blocks for the request. 
 A request is denoted by IOReq, and Length is assumed to be 1.  
-A time window (in our experiment, it was 10s.) is defined over I/O requests as a duration of monitoring
+A {\em time window} (in our experiment, it was 10s.) is defined over I/O requests as a duration of monitoring
 to detects periodically suspicious behavior of ransomware.
 It consists of $N$ time slices, and it slides by the time slice (\eg 1s) at every check point.
 To evaluate values of the six features, we build a counting table that basically stores IOReq's run length of overwriting. 
@@ -992,14 +1000,14 @@ $OWST$ is the current time slice's $OWIO$ divided by $WIO$.
 Finally, $OWSLOPE$ is the value of $OWIO$ divided by $PWIO$ as shown in \textcircled{3} of Fig.~\ref{fig-slw}.
 
 
-{\bf\noindent Basic functions:} By example, how to keep track of run length of 
+{\bf Basic functions:} By example, how to keep track of run length of 
 overwriting during each time slice and window is described in Fig.~\ref{fig-update}.  
 IOReqs used in this example are assumed to have (IOMode, LBA) and Length is 1
 for explanation. 
 At $t=0$, hash table and counting table are initially empty.
 When the first IOReq (1, R) is received, the hash table is looked up to find an entry 
 in the counting table. If there is no entry of the key ``1'', \ours{} creates
-a new node in the counting table with NewEntry function and registers it with the 
+a new entry in the counting table with NewEntry function and registers it with the 
 key value ``1'' in the hash table. NewEntry function updates as follows: Time is set to 0 
 (=the current time slice), LBA is set to 1 (=the IOReq's LBA), RL is set to 1,
 WL is set to 0 because it is a read IO. When the second IOReq (2, R) is received, 
@@ -1026,7 +1034,7 @@ as that of a read IO request within a time window. The next IOReq (3, W) has an 
 in the counting table. The entry indicates that there was a read IO from LBA 1 to 3, 
 but write IO's LBA from IOReq is 3. 
  That is, LBA 1 and 2 are not overwritten, but only LBA 3 should be overwritten.
-SpliteNode function splits the entry into two: one has a (Time 0, LBA 1, RL 2, WL 0) tuple,
+SpliteEntry function splits the entry into two: one has a (Time 0, LBA 1, RL 2, WL 0) tuple,
 and other has a (Time 1, LBA 3, RL 1, WL 1). 
 
 At check point 2 ($t=2$), $OWIO$ is 1, which means that overwriting occurred once. 
@@ -1038,47 +1046,46 @@ IOReq (2, W) updates the entry with LBA 1 by UpdateEntryW function.
 Now, LBA1 and LBA2 have been all overwritten, and WL is set to 2. 
 Also, there is a entry having a consecutive LBA next to them, and thus,
 MergeEntry function merges two entries (the dotted box) together into one.
-Consequently, at check point 4, $IO$ is 4 and $WIO$ is 4. $OWIO$ is 2 and $OWST$ is 2/4 because overwriting occurred twice. $AVGWIO$ is 4/2 because counting table has two nodes,
-and the sum of WL in the two nodes is 4. $PWIO$ is 2 because it is the sum of 
+Consequently, at check point 4, $IO$ is 4 and $WIO$ is 4. $OWIO$ is 2 and $OWST$ is 2/4 because overwriting occurred twice. $AVGWIO$ is 4/2 because counting table has two entries,
+and the sum of WL in the two entries is 4. $PWIO$ is 2 because it is the sum of 
 all WLs of the previous check point 3, and $OWSLOP$E is 1/1 because it is the $PWIO$ of 
 the previous checkpoint divided by the current $OWIO$.
 \begin{algorithm}[t]
         \caption{$\mathsf{Ransomware Detection}$} \label{alg:detect}
+        {\small
         \begin{algorithmic}[1]
-        \REQUIRE N
-        \WHILE {req$_i$ = IO req}
-        \IF {the time of req reach the next checkpoint }
-                \STATE UpdateWindow(checkpoint)
-                \STATE $ransome$ = ID3(6 attributes)
-                \STATE Score level up or down by $ransome$
+        \REQUIRE $N$
+        \FOR {all req$_i$}
+        \IF {the time slice expires}
+            \STATE Slide TimeWindow by one time slice
+            \STATE Calculate 6 attributes for $N$ time slices
+            \STATE $ransom$ += ID3(6 attributes)
         \ENDIF
         \IF {req$_i$ is write-req}
-            \IF {there is an entry of req$_i$ }
-                \STATE UpdateNodeW()
+            \IF {there is a read entry for req$_i$ in the counting table}
+                \STATE UpdateEntryW()
                 \IF {all lba in the entry is not overwritten}
-                    \STATE SpliteNode()
+                    \STATE SplitEntry()
                 \ENDIF
-                \IF {there is an entry on the right}
-                    \STATE MergeNode()
+                \IF {there is an entry overlapped}
+                    \STATE MergeEntry()
                 \ENDIF
             \ENDIF
         \ELSE
             \IF {there is no entry of req$_i$} 
-                \IF {there is an entry on the left}
-                    \STATE UpdateNodeR()
+                \IF {there is an entry overlapped}
+                    \STATE UpdateEntryR() and/or MergeEntry()
                 \ELSE
-                    \STATE NewNode()
-                \ENDIF
-                \IF {there is an entry on the right}
-                    \STATE MergeNode()
+                    \STATE NewEntry()
                 \ENDIF
             \ENDIF
         \ENDIF
-        \ENDWHILE
+        \ENDFOR
         \end{algorithmic}
+        }
 \end{algorithm}
 
-{\bf\noindent \ours{}'s real-time detection:} Ransomware detection algorithm utilizes
+{\bf \ours{}'s real-time detection:} Ransomware detection algorithm utilizes
 the counting table and the basic functions to determine whether a ransomware is in action or not. 
 When a time slice expires, it drops the obsolete entries in the counting table, 
 and six features are calculated using the counting table. 
@@ -1113,7 +1120,7 @@ process.  Finally, we discuss technical issues related to garbage
 collection.
 
 
-{\noindent\bf I/O Requests handling} 
+{\bf I/O Requests handling} 
 We first explain how a conventional FTL handles overwrite requests from the
 host and then describes the different way the SSD-Insider FTL does to support a
 quick data recovery.  In Fig~\ref{fig:io-handling}, the host system writes nine
@@ -1211,7 +1218,35 @@ attack, and thus the mapping entries for them are not updated.
 \label{fig:recovery}
 \end{figure}
 
-{\noindent\bf Data recovery process} 
+\begin{figure}
+\centering
+\includegraphics[width=0.45\textwidth]{fig/flash-fig4}
+\caption{
+Garbage collection in the \ours{} FTL. We assume that there is
+an idle period longer than 10 seconds between LBA 5 and LBA 2. Just
+after LBA 2 has been written, garbage collection is triggered
+(\textcircled{1}) and Block \#0 is chosen as a victim. For
+individual pages in the victim (i.e., LBAs 0, 1, 2, and 3), the
+\ours{} FTL looks up the mapping table to see if the matched
+pair exists.  If it is, a physical page contains valid data, and
+thus it should be copied to free space (e.g., LBA 3).  Otherwise,
+the page contains invalid data and its up-to-date version is stored
+in other locations. (e.g., LBAs 0, 1, and 2).  The FTL then checks
+if the recovery queue has the same LBA/PPA pair that stays in the
+queue shorter than 10 seconds.  If such a pair is found (e.g., LBA
+2), it indicates that there is a possibility of the new data of the
+LBA to be encrypted by ransomware.  Thus, the FTL copies the page
+to free space to keep original data (\textcircled{2}).  After
+copying LBAs 2 and 3, the mapping table and the backup entry in the
+queue are updated to point to their new locations (\textcircled{3}
+and \textcircled{4}).  Finally, the victim block is erased
+(\textcircled{5}).
+}
+\label{fig:gc}
+\end{figure}
+
+
+{\bf Data recovery process} 
 As pointed out before, data recovery in \ours{} is done by
 simply replacing the entries in the mapping table with ones having the same LBAs
 in the queue.  Once the data recovery process is
@@ -1250,7 +1285,7 @@ of experiments on EXT4, we found that file-system was successfully
 recovered to a consistent state with \texttt{fsck} tool, 
 which will be shown in section~\ref{sec:peval}.
 
-{\noindent\bf Garbage collection} 
+{\bf Garbage collection} 
 Garbage collection is the only way of permanently erasing actual
 contents in NAND flash. Old versions of data stored in
 flash pages shouldn't be erased by a garbage collector until their
@@ -1260,32 +1295,15 @@ reason, the \ours{} FTL has to copy even invalid pages during
 garbage collection if their up-to-date versions are not confirmed
 yet whether they are encrypted by ransomware or not. 
 
-\begin{figure}
+\begin{figure*}[t]
 \centering
-\includegraphics[width=0.45\textwidth]{fig/flash-fig4}
-\caption{
-Garbage collection in the \ours{} FTL. We assume that there is
-an idle period longer than 10 seconds between LBA 5 and LBA 2. Just
-after LBA 2 has been written, garbage collection is triggered
-(\textcircled{1}) and Block \#0 is chosen as a victim. For
-individual pages in the victim (i.e., LBAs 0, 1, 2, and 3), the
-\ours{} FTL looks up the mapping table to see if the matched
-pair exists.  If it is, a physical page contains valid data, and
-thus it should be copied to free space (e.g., LBA 3).  Otherwise,
-the page contains invalid data and its up-to-date version is stored
-in other locations. (e.g., LBAs 0, 1, and 2).  The FTL then checks
-if the recovery queue has the same LBA/PPA pair that stays in the
-queue shorter than 10 seconds.  If such a pair is found (e.g., LBA
-2), it indicates that there is a possibility of the new data of the
-LBA to be encrypted by ransomware.  Thus, the FTL copies the page
-to free space to keep original data (\textcircled{2}).  After
-copying LBAs 2 and 3, the mapping table and the backup entry in the
-queue are updated to point to their new locations (\textcircled{3}
-and \textcircled{4}).  Finally, the victim block is erased
-(\textcircled{5}).
-}
-\label{fig:gc}
-\end{figure}
+\subfigure[Our Open-Channel SSD Platform\label{fig:platform}]{\includegraphics[width=0.295\textwidth]{fig/flash-board}}\hfill
+\subfigure[\ours{} connected to a host sytem via PCIe \label{fig:platform}]{\includegraphics[width=0.34\textwidth]{fig/flash-board2}}\hfill
+\subfigure[Experimental Setup with Open-Channel SSD
+\label{fig:expenv}]{\includegraphics[width=0.34\textwidth]{fig/fig-expenv}}
+\caption{\ours{}'s working prototype and experimental setup}
+\end{figure*}
+
 
 Fig.~\ref{fig:gc} shows how the \ours{} FTL performs garbage collection.  In
 the above scenario, the three LBAs 0, 1, and 2 are overwritten -- two of them
@@ -1301,15 +1319,50 @@ extra page copies caused by \ours{} are trivial.  According to our experimental
 results, \ours{} exhibits {\color{red}XX\% and YY\%} higher GC overheads than
 the existing FTL under the average- and the worst-case scenarios, respectively.
 
+\begin{table}[t]
+	\centering
+	\caption{Data set with various combinations of ransomwares and applications for training and testing of \ours{}}
+	\begin{tabular}{c|c|c}
+		\hline
+		Application Type & Application & Ransomware \\
+		\hline
+		\hline 
+		\multicolumn{3}{c}{For training}\\
+		\hline 
+		Ransom only & none & Locky.bbs \\
+		Heavy overwriting& WPM (DataWiping) & none \\
+		Heavy overwriting& MySQL (Database) & none \\
+		Heavy overwriting& Dropbox (CloudStorage) & none \\
+		IO-intensive& CrystalDiskMark (IOStress) & Zerber.ufb \\
+		IO-intensive& IOMeter (IOStress) & Zerber.ufb \\
+		IO-intensive& hdtunepro (IOStress) & Zerber.ufb \\
+		Normal App& AutoCAD/VisualStudio (Install)& Locky.bdf\\
+		Normal App& Chrome (WebSurfing) & Locky.bbs \\
+		Normal App& OutlookSync & Locky.bdf \\
+		Normal App& WindowUpdate & Locky.bdf \\
+		Normal App& BitTorrent (P2PDown) & none \\
+		Normal App& Kakaotalk (SQLite) & none \\
+		\hline
+		\multicolumn{3}{c}{For testing}\\
+		\hline 
+		Ransom only & none & WannaCry \\ 
+		Heavy overwriting & Dropbox & In-house (outplace) \\
+		Heavy overwriting & WPM & GlobeImposter \\
+		Heavy overwriting & MySQL & In-house (inplace) \\ 
+		IO-intensive & IOMeter & CryptoShield \\ 
+		CPU-intensive & Bandizip (Compression) & Mole \\ 
+		CPU-intensive & Pot encoder (VideoEncode) & Jaff \\ 
+		Normal App & AutoCAD/VisualStudio (Install) & GlobeImposter\\ 
+		Normal App & Pot player (VideoDecode) & WannaCry \\ 
+		Normal App & OutlookSync & Mole \\ 
+		Normal App & BitTorrent & WannaCry \\ 
+		Normal App & Chrome & GlobeImposter \\ 
+		\hline
+	\end{tabular}
+	\label{tab:benchmarks}
+\end{table}
+
 \section{Implementation}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.4\textwidth]{fig/flash-board}
-\caption{Our Open-Channel SSD Platform}
-\label{fig:platform}
-\end{figure}
-
 We have implemented \ours{}'s
 detection and recovery algorithm in our in-house open-channel SSD
 prototype, which is illustrated in
@@ -1345,71 +1398,25 @@ storage device, storing user files. This setup allows us to run a
 variety of ransomware programs atop Linux's block I/O layer with
 minimal I/O stack interventions. Fig.~\ref{fig:expenv} illustrates a block diagram of our experimental setup with the open-channel SSDs.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.38\textwidth]{fig/fig-expenv}
-\caption{Experimental Setup with Open-Channel SSD}
-\label{fig:expenv}
-\end{figure}
-
 
 %\subsection{Experimental Results}
 
 \section{Experiment}
 
-\begin{table}[t]
-	\centering
-	\caption{Summary of training and test set for \ours{}}
-	\begin{tabular}{c|c|c|c}
-		\hline
-		Application Type & Application & Ransomware & Usage \\
-		\hline
-		\hline 
-		Ransom only & none & Locky.bbs & training  \\
-		Heavy overwriting& WPM (DataWiping) & none & training \\
-		Heavy overwriting& MySQL & none & training \\
-		Heavy overwriting& Dropbox & none & training \\
-		IO-intensive& CrystalDiskMark & Zerber.ufb & training \\
-		IO-intensive& IOMeter & Zerber.ufb & training \\
-		IO-intensive& hdtunepro & Zerber.ufb & training \\
-		Normal App& AutoCAD/VisualStudio install& Locky.bdf & training \\
-		Normal App& Chrome & Locky.bbs & training \\
-		Normal App& OutlookSync & Locky.bdf & training \\
-		Normal App& WindowUpdate & Locky.bdf & training \\
-		Normal App& Bittorrent & none & training \\
-		Normal App& Kakaotalk (SQLite) & none & training \\
-		\hline
-		Ransom only & none & Wannacry & testing \\ 
-		Heavy overwriting & Dropbox & In-house (outplace) & testing \\
-		Heavy overwriting & WPM & In-house (outplace) & testing \\
-		Heavy overwriting & MySQL & In-house (inplace) & testing \\ 
-		IO-intensive & IOMeter & Crypto Shield & testing \\ 
-		CPU-intensive & Badizip (Compression) & Mole & testing \\ 
-		CPU-intensive & Pot encoder (Video encode) & Jaff & testing \\ 
-		Normal App & AutoCAD/VisualStudio install & Globelmposter & testing \\ 
-		Normal App & Pot player (Video play) & In-house (inplace) & testing \\ 
-		Normal App & Outlook & In-house (inplace) & testing \\ 
-		Normal App & Bittorrent & In-house (inplace) & testing \\ 
-		Normal App & Chrome & In-house (inplace) & testing \\ 
-		\hline
-	\end{tabular}
-	\label{tab:benchmarks}
-\end{table}
-
 \begin{figure*}[t]
         \centering
-        \subfigure[Wannacry]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-1.png}}
+        \subfigure[WannaCry]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-1.png}}
         \subfigure[CloudStorage+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-2.png}}
-        \subfigure[DataWiping+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-3.png}}
-        \subfigure[Install+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-4.png}}
-        \subfigure[Database+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-5.png}}
-        \subfigure[PlayMovie+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-6.png}}
-        \subfigure[OutlookSynch+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-7.png}}
-        \subfigure[P2PDown+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-8.png}}
-        \subfigure[WebSurfing+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-9.png}}
+        \subfigure[DataWiping+GlobeImposter\label{fig-accuracy-dw}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-3.png}}
+        \subfigure[Install+GlobeImposter\label{fig-accuracy-in}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-4.png}}
+        \subfigure[Database+In-house\label{fig-accuracy-db}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-5.png}}
+        \subfigure[VideoDecode+WannaCry]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-6.png}}
+        \subfigure[OutlookSync+Mole]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-7.png}}
+        \subfigure[P2PDown+WannaCry]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-8.png}}
+        \subfigure[WebSurfing+GlobeImposter]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-9.png}}
         \subfigure[IOStress+CryptoShield]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-10.png}}
         \subfigure[Compression+Mole]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-11.png}}
-        \subfigure[Encoding+Jaff]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-12.png}}
+        \subfigure[VideoEncode+Jaff]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-12.png}}
         \caption{\ours{}'s detection accuracy varying the score during a time window (10s):
         the higher the score (or, the frequency of the decision tree reports ransomware activity for a time window) is,
         the higher the probability of successful detection is.}
@@ -1417,28 +1424,20 @@ minimal I/O stack interventions. Fig.~\ref{fig:expenv} illustrates a block diagr
 \end{figure*}
 \begin{figure*}[t]
         \centering
-        \subfigure[Wannacry]{\includegraphics[width=0.22\textwidth]{fig/exp-det-cul-1.png}}
-        \subfigure[CloudStorage+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-cul-2.png}}
-        \subfigure[DataWiping+In-house\label{datawiping-latency}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-cul-3.png}}
-        \subfigure[Install+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-cul-4.png}}
-        \subfigure[Database+In-house\label{db-latency}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-cul-5.png}}
-        \subfigure[PlayMovie+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-cul-6.png}}
-        \subfigure[OutlookSync+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-cul-7.png}}
-        \subfigure[P2PDown+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-cul-8.png}}
-        \subfigure[WebSurfing+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-cul-9.png}}
-        \subfigure[IOStress+CryptoShield\label{io-latency}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-cul-10.png}}
-        \subfigure[Compression+Mole\label{compression-latency}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-cul-11.png}}
-        \subfigure[Encoding+Jaff\label{encoding-latency}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-cul-12.png}}
+        \subfigure[Heavy overwriting\label{fig-latency-heavy}]{\includegraphics[width=0.23\textwidth]{fig/exp-det-cul-1.png}}
+        \subfigure[IO-intensive\label{fig-latency-io}]{\includegraphics[width=0.23\textwidth]{fig/exp-det-cul-2.png}}
+        \subfigure[CPU-intensive\label{fig-latency-cpu}]{\includegraphics[width=0.23\textwidth]{fig/exp-det-cul-3.png}}
+        \subfigure[Normal App]{\includegraphics[width=0.23\textwidth]{fig/exp-det-cul-4.png}}
         \caption{\ours{}'s detection latency: all of the ransomware in various working scenarios were detected 100\%
-        within 10 seconds. \nyang{This figure will be merged into a several groups.}}
+        within 10 seconds.}
         \label{fig:latency}
 \end{figure*}
 
 
 \subsection{Ransomware Data Sets}
 For the evaluation, we collected various well-known ransomwares such as 
-Locky.bdf~\cite{lockybdf}, Locky.bbs~\cite{lockybbs}, Zerber.ufb~\cite{zerber}, 
-WannaCry~\cite{wannacry}, Jaff~\cite{jaff}, Mole~\cite{mole} and CryptoShield~\cite{cryptoshield}. 
+Locky.bdf, Locky.bbs, Zerber.ufb, 
+WannaCry, Jaff, Mole, GlobeImposter and CryptoShield~\cite{virustotal}. 
 As well as those, we have artificially implemented new ransomwares that are not
 reported to the public using open source ransomewares from github~\cite{virgang,poc}
 -- one of them has an `in-place update' encryption attack; the other is based on an `out-of-place update'.
@@ -1486,7 +1485,7 @@ under the same I/O behaviors.
 
 
 \subsection{Performance evaluation}\label{sec:peval}
-{\noindent\bf Ransomware detection accuracy:}
+{\bf Ransomware detection accuracy:}
 To evaluate the accuracy of SSD-Insider detection algorithms,
 %Combinations of a ransomware and a normal software for realistic evaluation are summarized in Table~\ref{tab:benchmarks}.
 we measured FAR and FRR of the detection algorithm varying the threshold of the score value (or the frequency of the
@@ -1500,9 +1499,10 @@ However, as can be seen in Fig.~\ref{fig:accuracy}, even in four scenarios invol
 data wiping, and software install, \ours{} detected very accurately for the threshold value 3.
 With the threshold value 3, FRRs in all scenarios were 0\%, but FARs were not 0\%, which means that
 \ours{} did not miss any ransomware activity, but sometimes falsely recognized normal application's activity as 
-that of ransomware. This might interrupt users but it would rarely happen with FAR XXX\%.
+that of ransomware. This might interrupt users but it would rarely happen with at most FAR 5\% as shown
+in Fig.~\ref{fig-accuracy-dw}, Fig.~\ref{fig-accuracy-in}, and Fig.~\ref{fig-accuracy-db}.
 
-{\noindent\bf Detection latency:}
+{\bf Detection latency:}
 $N$, the size of the time window determines \ours{}'s accuracy and latency. 
 There is a trade-off between them, that is, if we increase $N$, the accuracy gets better, but the detection latency
 increases. For a small $N$, we can detect faster, but with lower accuracy as shown in Fig.~\ref{fig:latency}. 
@@ -1510,26 +1510,26 @@ In the figure, we measured detection accuracy with threshold 3 varying the lengt
 If $N$ is 10s, ransomwares in all scenarios were detected 100\%. 
 The detection algorithm using $N<10$ could not detect perfectly ransomware in some scenarios having 
 CPU-intensive and IO-intensive background applications such as compression and IOStress as shown in 
-Fig.~\ref{io-latency}, Fig.~\ref{compression-latency}, and Fig.~\ref{encoding-latency}. 
+Fig.~\ref{fig-latency-io} and Fig.~\ref{fig-latency-cpu}. 
 Otherwise, most of them were detected successfully with a time window of $N=7,8,9$.
 For example, $N=8$ was enough for data wiping and database applications with similar overwriting behavior
-as shown in Fig.~\ref{datawiping-latency} and Fig.~\ref{db-latency}. 
+as shown in Fig.~\ref{fig-latency-heavy}.
 
-{\noindent\bf Recovery time:}
+{\bf Recovery time:}
 We assess how long it takes to recover infected SSDs. For the 12
-traces where ransomware activities are included, we measure the
-elapsed times from when ransomware is detected to when infected
-SSDs are recovered to a clean status. Fig.~\ref{fig:flash-recovery}
-summarizes our experimental results. Even though there are
+traces where ransomware activities were included, we measured the
+elapsed time from when ransomware was detected to when infected
+SSDs were recovered to a clean status. Fig.~\ref{fig:flash-recovery}
+summarizes our experimental results. Even though there were
 differences depending on the traces, the elapsed times to fully
-recover SSDs are less than 1 second. As expected, this is due to
+recover SSDs were less than 1 second. As expected, this is due to
 the fact that \ours{} only modifies the mapping table in DRAM
 for data recovery, avoiding physical copies of data in NAND flash.
-For some traces like CloudStorage, Compression, and Encoding, \ours{}
+For some traces like CloudStorage, Compression, and VideoEncode, \ours{}
 shows relatively long recovery times compared with the other ones.
-In our observation, those traces write a large amount of data just
-before the ransomware is detected. Thus, when the recovery module
-is activated, it examines many items in the recovery queue which must
+In our observation, those traces wrote a large amount of data just
+before the ransomware was detected. Thus, when the recovery module
+was activated, it examined many items in the recovery queue which must
 be examined to roll-back infected mapping entries into safe ones.
 However, even with such workloads with long queue lengths, recovery
 times are short enough.
@@ -1537,23 +1537,23 @@ times are short enough.
 \begin{figure}[t] 
 	\centering 
 	\includegraphics[width=0.42\textwidth]{exp/recovery/fig}
-	\caption{Total elapsed times taken to recover infected SSDs} 
+	\caption{Total elapsed times taken to recover ransomware-infected SSDs with various background applications} 
 	\label{fig:flash-recovery} 
 \end{figure}
 
-{\noindent\bf Data consistency:} 
+{\bf Data consistency:} 
 Finally, we evaluate \ours{}'s capability on data consistency.
-For our evaluation, we intentionally expose a host system to a
-ransomware program, which eventually results in the pause of write
-operations and requires users to reboot the system for data
-recovery.  To understand how well file-system consistency is
+For our evaluation, we intentionally exposed a host system to a
+ransomware program, which eventually resulted in the pause of write
+operations and required users to reboot the system for data
+recovery.  To understand how well file-system consistency was
 maintained after a sudden system reboot caused by ransomware,  we
-run real ransomware atop the file system mounted to our flash
+ran real ransomware atop the file system mounted to our flash
 platform depicted in Fig.~\ref{fig:platform} (instead of
-trace-driven evaluations).  For exhaustive evaluation, we repeat
-self-infection tests more than 100 times.  We use a custom
-ransomware we develop for Linux -- it mimics the common behaviors
-of well-known ransomware programs and infects larger than 1 GB
+trace-driven evaluations).  For exhaustive evaluation, we repeated
+self-infection tests more than 100 times.  We used a custom
+ransomware we developed for Linux -- it mimics the common behaviors
+of well-known ransomware programs and infected larger than 1 GB
 files at an arbitrary point of time.
 
 As explained in Section~\ref{sec:recovery}, once \ours{}
@@ -1562,9 +1562,9 @@ requests from the host, makes the storage system itself read-only,
 and asks end users to reboot the system to protect user files.
 After the reboot, a \texttt{fsck} tool is triggered to find and
 resolve data inconsistency in the file system. After recovering
-infected SSDs, we see if the file system is still in the consistent
-state.  Table~\ref{tab:flash-consist} below summarizes our
-experimental results. We also check if all the infected files are
+infected SSDs in the experiment, we saw if the file system was still in the consistent
+state.  Table~\ref{tab:flash-consist} summarizes our
+experimental results. We also checked if all the infected files were
 rolled back to unencrypted versions. Our results in
 Table~\ref{tab:flash-consist} confirm that infected SSDs
 successfully return to a consistent status with no encrypted files.
@@ -1591,41 +1591,41 @@ successfully return to a consistent status with no encrypted files.
 	\centering 
 	\subfigure[Read elapsed time]{\includegraphics[width=0.45\textwidth]{exp/resp-read/fig}} \\
 	\subfigure[Write elapsed time]{\includegraphics[width=0.45\textwidth]{exp/resp-write/fig}}
-	\caption{Impact of \ours{} on I/O elapsed times}
+	\caption{Impact of \ours{} on I/O elapsed times for ransomware-infected SSDs with various background applications running}
 	\label{fig:flash-avg-resp}
 \end{figure}
-{\noindent\bf I/O Elapsed time:} 
-We evaluate the impact of the \ours{} algorithms on I/O elapsed times.  For the
-13 traces summarized in Table~\ref{fig:flash-avg-resp}, we measure read and
-write elapsed times increased by the \ours{} algorithms which are depicted in
+{\bf I/O Elapsed time:} 
+We evaluated the impact of the \ours{} algorithms on I/O elapsed times.  For the
+13 traces summarized in Table~\ref{fig:flash-avg-resp}, we measured read and
+write elapsed times increased by \ours{} algorithms which are depicted in
 Fig.~\ref{fig:flash-avg-resp}.  Fig.~\ref{fig:flash-avg-resp} includes the
 length of time spent by the FTL codes and the \ours{} detection/recovery
 algorithms, excluding NAND device latency.  In order to confirm the feasibility
-of our algorithms on embedded processors, we intentionally slow down the CPU
+of our algorithms on embedded processors, we intentionally slowed down the SSD's CPU
 frequency from 3 GHz to 1.2 GHz.  Compared with the conventional FTL, read and
-write latencies with \ours{} have increased by 23.5\% and 15.6\%, on average.
+write latencies with \ours{} increased by 23.5\% and 15.6\%, on average.
 More specifically, the elapsed times taken for the FTL algorithms (without the
-\ours{} algorithms) to handle 4-KB block read and write requests are 477 $n$s
+\ours{} algorithms) to handle 4-KB block read and write requests were 477 $n$s
 and 1,372 $n$s, respectively. On the other hand, the extra software overheads
 incurred by the \ours{} algorithms (including both the ransomware detection and
-recovery) are just 147 $n$s and 254 $n$s for 4-KB reads and writes,
+recovery) were just 147 $n$s and 254 $n$s for 4-KB reads and writes,
 respectively. Considering that NAND chip latencies for reading/writing data
 from/to 4-KB flash pages are 50 $\mu$s and 500-1,000 $\mu$s~\cite{micron-nand},
 these additional delays account for a negligible portion of the total I/O
 response times and do not affect user-perceived I/O response times.
 
 
-\begin{figure}[t] 
+\begin{figure*}[t] 
 	\centering 
-	\subfigure[Utilization = 70\%]{\includegraphics[width=0.45\textwidth]{exp/gc-low/fig}} \\
+	\subfigure[Utilization = 70\%]{\includegraphics[width=0.45\textwidth]{exp/gc-low/fig}}
 	\subfigure[Utilization = 90\%]{\includegraphics[width=0.45\textwidth]{exp/gc-high/fig}}
 	\caption{A comparison of garbage collection costs of
-	a conventional SSD and \ours{}} 
+	a conventional SSD and \ours{}-enabled SSDs with various ransomware infection and various background applications} 
 	\label{fig:flash-gc-cost} 
-\end{figure}
+\end{figure*}
 
 {\color{red}
-{\noindent\bf Garbage collection cost:}
+{\bf Garbage collection cost:}
 We then look into the effect of \ours{} on garbage collection.
 The \ours{} recovery algorithm has to copy invalid pages to
 keep old versions of data during garbage collection for data
@@ -1635,21 +1635,21 @@ which negatively affects both I/O performance and storage lifetime.
 Our experimental results, however, show that the effect of the
 \ours{} algorithms on the increase of garbage collect costs is
 insignificant.  Fig.~\ref{fig:flash-gc-cost} illustrates how many
-extra pages are copied during garbage collection.  In order to
+extra pages were copied during garbage collection.  In order to
 assess \ours{} under the normal- and the worst-case scenarios
-where garbage collect costs are moderate and high, we fill up 70\%
-or 90\% of the SSD with user files, respectively, and run
-individual traces on it.  When the SSD utilization is 70\%, the
-overall garbage collection costs are negligible -- it is about
+where garbage collect costs are moderate and high, we filled up 70\%
+or 90\% of the SSD with user files, respectively, and ran
+individual traces on it.  When the SSD utilization was 70\%, the
+overall garbage collection costs were negligible -- it is about
 {\color{red}XX\%}.  Even under the worst-case scenario with the SSD utilization
-of 90\%, the SSD-Inside FTL requires 22\% more page copies, on
+of 90\%, the SSD-Inside FTL required 22\% more page copies, on
 average, compared with the conventional FTL. For some traces like
-{\color{red}XXX, YYY, and ZZZ,} only few page copies are observed,
-regardless of the type of the FTL. This because these workloads
+{\color{red}XXX, YYY, and ZZZ,} only a few page copies were observed,
+regardless of the type of the FTL. This is because these workloads
 themselves do not require many page copies for cleaning.
 }
 
-{\noindent\bf DRAM Requirement:}
+{\bf DRAM Requirement:}
 For the ransomware detection and recovery, \ours{} has to maintain additional
 data structures like a hash table, a counting table, and a recovery queue.
 TABLE~\ref{tab:size_summary} summarizes the size of DRAM required by \ours{}
@@ -1658,8 +1658,46 @@ an affordable size for modern flash-based SSDs typically equipped with more
 than 1 GB DRAM~\cite{hitachi-ssd, samsung-ssd, phison-ssd}.
 
 
+\begin{figure}[t]
+	\includegraphics[width=0.45\textwidth]{fig/exp-det-mem.png}
+	\caption{Amount of memory used by \ours{} is shown. QuickWriter is our in-house ransomware 
+	to overwrite heavily to consume as much memory as possible.
+	Gryphon is a newly-found ransomware of which strategy is similar to the delayed overwriting.
+	It was detected with 12s-time window. Heavy overwriters such as QuickWriter and WannaCry
+	consume the largest amount of memory, but even with 30s-time window, 9MB are enough for \ours{}.}\label{fig-wsize}
+\end{figure}
 
 \section{Discussion}
+\subsection{Time window size}
+{\bf Memory overhead:}
+As already shown in section~\ref{sec:peval}, the detection rate increases
+according to the size of the time window $N$, and it reached to 100\% around 10s.
+Under some environment where ransomware's working speed slows down owing to
+heavy IO or heavy computation, the window size might have to be enlarged for catching
+rasomware, which might also increase memory usage of \ours{}.
+However, we observed that the amount of memory did not increase rapidly in most ransomware
+experiments as shown in Fig.~\ref{fig-wsize}. With a 30s time window, the amount of memory
+required for the counting table was at most 9MB. 
+We reason that the overwriting volume itself
+did not increase but just a similar amount of overwritings spread over the longer  
+period of time rather slowly. This observation allowed us to adjust flexibly the window size
+depending on the situation without concerning the memory usage. 
+
+{\bf Delayed overwriting as a ransomware's strategy:}
+Another issue on the window size is the possibility that a new type of 
+ransomware might appear to evade our detection algorithm. It can avoid being detected 
+by reading and encrypting  a large number of files, storing the data in memory, 
+waiting until the window expires, and then finally executing in-place update. 
+With this strategy, this imaginary ransomware might be able to avoid the current version of \ours{},
+but this can be resolved by monitoring overwriting behavior from FTL update.
+Instead of maintaining read accesses in \ours{}'s counting table, we can take advantage of
+FTL's mapping table to see whether a certain write request is for overwriting or for fresh write.
+All the six invariant feature values can be calculated by maintaining only those counters such
+as the total IO, the overwriting counters, and the run lengths over a time window.
+This off-loading enables \ours{} to use a larger time window without concerning memeory overhead, 
+and allows it long-term monitoring, which in turn makes \ours{} strong against the imaginary ransomware 
+with the delayed overwriting strategy. We leave the investigation of off-loading issues for future work.
+
 \subsection{File system issue} 
 The current version of \ours{} detection and recovery
 algorithms targeted journaling file systems, such as NTFS and
@@ -1671,7 +1709,7 @@ file systems (COW).  Unlike journaling file systems, LFS and COW
 were designed to append almost all of the data to storage media
 sequentially, avoiding in-place updates or overwrites of user data.
 Since our detection algorithm identifies ransomware attacks based
-on frequent in-place updates behaviors of ransomwares, it wouldn't
+on frequent in-place update behaviors of ransomwares, it wouldn't
 work properly under LFS and COW file systems. One promising way to
 address the above problem is to enhance a host-to-storage interface
 (e.g., SATA and NVMe) so that more detailed file-system level
@@ -1711,8 +1749,6 @@ persistently even when a system power is not properly supplied.
 Using a copy of the recovery queue kept in NAND flash, \ours{}
 can recover infected files even after a power failure and a
 ransomware attack happen simultaneously.
-
-
 
 \section{Related Work}
 
@@ -1785,9 +1821,9 @@ such as AES and RSA should have necessarily~\cite{orman16}.
 However, it should be noted that monitoring calls to encryption libraries is not enough, 
 because encryption can be easily implemented using prevailed open source software. 
 Canfora \etal developed detection schemes of ransomware's abnormal behavior  
-using Hidden Markov Model (HMM) and structural entropy~\cite{cafora16}.
-Cabaj \etal and Scaife \etal utilized Software-Defined Network to detect and mitigate 
-ransomware~\cite{cabaj16,scaife162}.
+using Hidden Markov Model (HMM) and structural entropy~\cite{canfora16}.
+Cabaj \etal utilized Software-Defined Network (SDN) to detect and mitigate 
+ransomware~\cite{cabaj16}.
 
 Dietrich \etal grouped more than 213,671 screenshots of executed malware samples
 into subsets of structurally similar images and used the visual appearance for ransomware 
