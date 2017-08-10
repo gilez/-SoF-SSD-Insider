@@ -81,6 +81,7 @@
 \usepackage{color}
 \usepackage{hyperref}
 \usepackage{xspace}
+\usepackage{multirow}
 \hypersetup{  
 	pdfpagemode=pagewidth,
 	plainpages=false, 
@@ -1315,7 +1316,7 @@ LBA 3 to free space even if it contains obsolete data.  Compared with the
 conventional FTL, \ours{} requires to copy more pages during garbage
 collection.  However, since only a limited number of pages stay in the queue,
 extra page copies caused by \ours{} are trivial.  According to our experimental
-results, \ours{} exhibits {\color{red}XX\% and YY\%} higher GC overheads than
+results, \ours{} exhibits almost 0\% and 22\% higher GC overheads than
 the existing FTL under the average- and the worst-case scenarios, respectively.
 
 \begin{table}[t]
@@ -1542,8 +1543,8 @@ times are short enough.
 \end{figure}
 
 {\bf Data consistency:} 
-Finally, we evaluate \ours{}'s capability on data consistency.
-For our evaluation, we intentionally exposed a host system to a
+Finally, we evaluate \ours{}'s capability on data consistency.  For
+our evaluation, we intentionally exposed a host system to a
 ransomware program, which eventually resulted in the pause of write
 operations and required users to reboot the system for data
 recovery.  To understand how well file-system consistency was
@@ -1551,36 +1552,39 @@ maintained after a sudden system reboot caused by ransomware,  we
 ran real ransomware atop the file system mounted to our flash
 platform depicted in Fig.~\ref{fig:platform} (instead of
 trace-driven evaluations).  For exhaustive evaluation, we repeated
-self-infection tests more than 100 times.  We used a custom
-ransomware we developed for Linux -- it mimics the common behaviors
-of well-known ransomware programs and infected larger than 1 GB
-files at an arbitrary point of time.
+self-infection tests 100 times.  We used a custom ransomware we
+developed for Linux -- it mimics the common behaviors of well-known
+ransomware programs and infected larger than 1 GB files at an
+arbitrary point of time.
 
-As explained in Section~\ref{sec:recovery}, once \ours{}
-detects the activities of the ransomware, it stops servicing write
-requests from the host, makes the storage system itself read-only,
-and asks end users to reboot the system to protect user files.
-After the reboot, a \texttt{fsck} tool is triggered to find and
-resolve data inconsistency in the file system. After recovering
-infected SSDs in the experiment, we saw if the file system was still in the consistent
-state.  Table~\ref{tab:flash-consist} summarizes our
-experimental results. We also checked if all the infected files were
-rolled back to unencrypted versions. Our results in
+As explained in Section~\ref{sec:recovery}, once \ours{} detects
+the activities of the ransomware, it stops servicing write requests
+from the host, makes the storage system itself read-only, and asks
+end users to reboot the system to protect user files.  After the
+reboot, a \texttt{fsck} tool is triggered to find and resolve data
+inconsistency in the file system. After recovering infected SSDs in
+the experiment, we saw if the file system was still in the
+consistent state.  Table~\ref{tab:flash-consist} summarizes our
+experimental results according to the type of file-system
+corruptions. We also checked if all the infected files were rolled
+back to unencrypted versions. Our results in
 Table~\ref{tab:flash-consist} confirm that infected SSDs
-successfully return to a consistent status with no encrypted files.
+successfully return to a consistent status with no encrypted files
+left.
 
 \begin{table}[t]
 	\centering
-	\caption{{\color{red}{A summary of file-system consistency checks}}}
+	\caption{A summary of file-system consistency checks}
 	\begin{tabular}{c|c|c|c}
 		\hline
-		Type	& \# of occurrences & Correction & Files left encrypted \\
+		\multirow{2}{*}{Type of corruption}   & \# of 			& 	Corruption 		& Files \\
+											  & occurrences 	&   not resolved	& left encrypted \\
 		\hline
 		\hline
-		No corruption		& 33 & $\circ$ & $\times$ \\ 
-		Bitmap 				& 21 & $\circ$ & $\times$ \\ 
-		Metadata 			& 33 & $\circ$ & $\times$ \\ 
-							& 11 & $\circ$ & $\times$ \\ 
+		No corruption			& 0  			& -  	     & - \\ 
+		Wrong free-block count 	& 100 & $\times$ & $\times$ \\ 
+		Wrong inode-block count & 100 & $\times$ & $\times$ \\ 
+		Free-space bitmap		& 61  & $\times$ & $\times$ \\ 
 		\hline
 	\end{tabular}
 	\label{tab:flash-consist}
@@ -1595,59 +1599,59 @@ successfully return to a consistent status with no encrypted files.
 	\label{fig:flash-avg-resp}
 \end{figure}
 {\bf I/O Elapsed time:} 
-We evaluated the impact of the \ours{} algorithms on I/O elapsed times.  For the
-13 traces summarized in Table~\ref{fig:flash-avg-resp}, we measured read and
-write elapsed times increased by \ours{} algorithms which are depicted in
-Fig.~\ref{fig:flash-avg-resp}.  Fig.~\ref{fig:flash-avg-resp} includes the
-length of time spent by the FTL codes and the \ours{} detection/recovery
-algorithms, excluding NAND device latency.  In order to confirm the feasibility
-of our algorithms on embedded processors, we intentionally slowed down the SSD's CPU
-frequency from 3 GHz to 1.2 GHz.  Compared with the conventional FTL, read and
-write latencies with \ours{} increased by 23.5\% and 15.6\%, on average.
-More specifically, the elapsed times taken for the FTL algorithms (without the
-\ours{} algorithms) to handle 4-KB block read and write requests were 477 $n$s
-and 1,372 $n$s, respectively. On the other hand, the extra software overheads
-incurred by the \ours{} algorithms (including both the ransomware detection and
-recovery) were just 147 $n$s and 254 $n$s for 4-KB reads and writes,
-respectively. Considering that NAND chip latencies for reading/writing data
-from/to 4-KB flash pages are 50 $\mu$s and 500-1,000 $\mu$s~\cite{micron-nand},
-these additional delays account for a negligible portion of the total I/O
-response times and do not affect user-perceived I/O response times.
+We evaluated the impact of the \ours{} algorithms on I/O elapsed
+times.  For the 13 traces summarized in
+Table~\ref{fig:flash-avg-resp}, we measured read and write elapsed
+times increased by \ours{} algorithms which are depicted in
+Fig.~\ref{fig:flash-avg-resp}.  Fig.~\ref{fig:flash-avg-resp}
+includes the length of time spent by the FTL codes and the \ours{}
+detection/recovery algorithms, excluding NAND device latency.  In
+order to confirm the feasibility of our algorithms on embedded
+processors, we intentionally slowed down the SSD's CPU frequency
+from 3 GHz to 1.2 GHz.  Compared with the conventional FTL, read
+and write latencies with \ours{} increased by 23.5\% and 15.6\%, on
+average.  More specifically, the elapsed times taken for the FTL
+algorithms (without the \ours{} algorithms) to handle 4-KB block
+read and write requests were 477 $n$s and 1,372 $n$s, respectively.
+On the other hand, the extra software overheads incurred by the
+\ours{} algorithms (including both the ransomware detection and
+recovery) were just 147 $n$s and 254 $n$s for 4-KB reads and
+writes, respectively. Considering that NAND chip latencies for
+reading/writing data from/to 4-KB flash pages are 50 $\mu$s and
+500-1,000 $\mu$s~\cite{micron-nand}, these additional delays
+account for a negligible portion of the total I/O response times
+and do not affect user-perceived I/O response times.
 
-
-\begin{figure*}[t] 
+\begin{figure}[t] 
 	\centering 
-	\subfigure[Utilization = 70\%]{\includegraphics[width=0.45\textwidth]{exp/gc-low/fig}}
-	\subfigure[Utilization = 90\%]{\includegraphics[width=0.45\textwidth]{exp/gc-high/fig}}
+	\includegraphics[width=0.45\textwidth]{exp/gc-high/fig}
 	\caption{A comparison of garbage collection costs of
 	a conventional SSD and \ours{}-enabled SSDs with various ransomware infection and various background applications} 
 	\label{fig:flash-gc-cost} 
-\end{figure*}
+\end{figure}
 
-{\color{red}
 {\bf Garbage collection cost:}
-We then look into the effect of \ours{} on garbage collection.
-The \ours{} recovery algorithm has to copy invalid pages to
-keep old versions of data during garbage collection for data
-recovery later. Moreover, since those old pages occupy additional
-space of the SSD, it would lead to more frequent GC invocations,
-which negatively affects both I/O performance and storage lifetime.
-Our experimental results, however, show that the effect of the
-\ours{} algorithms on the increase of garbage collect costs is
-insignificant.  Fig.~\ref{fig:flash-gc-cost} illustrates how many
-extra pages were copied during garbage collection.  In order to
-assess \ours{} under the normal- and the worst-case scenarios
-where garbage collect costs are moderate and high, we filled up 70\%
-or 90\% of the SSD with user files, respectively, and ran
-individual traces on it.  When the SSD utilization was 70\%, the
-overall garbage collection costs were negligible -- it is about
-{\color{red}XX\%}.  Even under the worst-case scenario with the SSD utilization
-of 90\%, the SSD-Inside FTL required 22\% more page copies, on
-average, compared with the conventional FTL. For some traces like
-{\color{red}XXX, YYY, and ZZZ,} only a few page copies were observed,
-regardless of the type of the FTL. This is because these workloads
-themselves do not require many page copies for cleaning.
-}
+We then look into the effect of \ours{} on garbage collection.  The
+\ours{} recovery algorithm has to copy invalid pages to keep old
+versions of data during garbage collection for data recovery later.
+Moreover, since those old pages occupy additional space of the SSD,
+it would lead to more frequent GC invocations, which negatively
+affects both I/O performance and storage lifetime.  In order to
+assess \ours{} under the worst-case scenario where garbage collect
+costs are high, we filled up 90\% of the SSD with user files and
+ran individual traces on it. As depicted in
+Fig.~\ref{fig:flash-gc-cost}, even under the worst-case situation,
+the SSD-Inside FTL required 22\% more page copies, on average,
+compared with the conventional FTL. For the traces except for
+{\color{red}Compression, VideoEncode, and Wannacry}, only a few
+page copies were observed, regardless of the type of the FTL. This
+was because these workloads themselves did not require many page
+copies for cleaning.  We also conducted a set of experiments with
+70\% SSD  space utilization to understand garbage collection overheads
+under the average-case scenario, and found that the number of extra
+page copies caused by SSD-Insider were almost zero. This
+indicates that the effect of the \ours{} algorithms on the increase
+of garbage collect costs is negligible.
 
 {\bf DRAM Requirement:}
 For the ransomware detection and recovery, \ours{} has to maintain additional
