@@ -1297,13 +1297,12 @@ yet whether they are encrypted by ransomware or not.
 
 \begin{figure*}[t]
 \centering
-\subfigure[Our Open-Channel SSD Platform\label{fig:platform}]{\includegraphics[width=0.295\textwidth]{fig/flash-board}}\hfill
-\subfigure[\ours{} connected to a host sytem via PCIe \label{fig:platform}]{\includegraphics[width=0.34\textwidth]{fig/flash-board2}}\hfill
-\subfigure[Experimental Setup with Open-Channel SSD
-\label{fig:expenv}]{\includegraphics[width=0.34\textwidth]{fig/fig-expenv}}
+\subfigure[Open-channel SSD card]{\includegraphics[width=0.295\textwidth]{fig/flash-board}}\hfill
+\subfigure[The SSD card attached to a x86 host via PCIe]{\includegraphics[width=0.34\textwidth]{fig/flash-board2}}\hfill
+\subfigure[A diagram of our experimental setup]{\includegraphics[width=0.34\textwidth]{fig/fig-expenv}}
 \caption{\ours{}'s working prototype and experimental setup}
+\label{fig:platform}
 \end{figure*}
-
 
 Fig.~\ref{fig:gc} shows how the \ours{} FTL performs garbage collection.  In
 the above scenario, the three LBAs 0, 1, and 2 are overwritten -- two of them
@@ -1363,16 +1362,15 @@ the existing FTL under the average- and the worst-case scenarios, respectively.
 \end{table}
 
 \section{Implementation}
-We have implemented \ours{}'s
-detection and recovery algorithm in our in-house open-channel SSD
-prototype, which is illustrated in
-Figure~\ref{fig:platform}.  Our in-house flash card, connected to
-the host through a high-speed PCIe interface, is composed of 8
-channels and 8 ways, offering a total capacity of 512 GB. It also
-provides fairly high performance, 700 MB/s for writes and 1.2 GB/s
-for reads, which is comparable to commercial PCIe SSDs.  
-To evaluate \ours{} in terms of performace and overhead, 
-we used an evaluation platform which was equipped
+We have implemented \ours{}'s detection and recovery algorithm in
+our in-house open-channel SSD prototype, which is illustrated in
+Figure~\ref{fig:platform}.  Our in-house flash card, connected to a
+x86 host through a high-speed PCIe interface, is composed of 8
+channels and 8 ways with a custom FPGA controller, offering a total
+capacity of 512 GB. It also provides fairly high performance, 700
+MB/s for writes and 1.2 GB/s for reads, which is comparable to
+commercial PCIe SSDs.  To evaluate \ours{} in terms of performance
+and overhead, we used an evaluation platform which was equipped
 with Intel's Xeon quad-core processor running at 3.0 GHz and 4 GB
 DDR4 DRAM. Ubuntu 16.04 with the Linux kernel 4.10 was used as a
 host operating system.  
@@ -1381,22 +1379,24 @@ Unlike off-the-shelf SSDs that do not allow us to directly modify
 the FTL algorithm inside, the open-channel SSD platform enables us
 to implement and test various FTL algorithms because all those
 algorithms are run on the block device layer of the host
-system~\cite{lightnvm}.  Note that, even though the FTL algorithms, along
-with the detection and recovery algorithms, are implemented in the
-Linux kernel block I/O layer, they could be directly adopted to the
-firmware FTL in real SSD devices since there are no differences in
-the design principle.
+system~\cite{lightnvm}.  Note that, even though the FTL algorithms,
+along with the detection and recovery algorithms, are implemented
+in the Linux kernel block I/O layer, they could be directly adopted
+to the firmware FTL in real SSD devices since there are no
+differences in the design principle.
 
 While our evaluation platform is based on the Linux operating
 system, almost all of the ransomware programs are implemented to
 run on Microsoft's Windows operating system, except for the few.
-To evaluate \ours{} with various ransomware programs, we
-create a virtual machine that is directly connected to a dedicated
-SSD exposed by the Linux as a raw block device.  Windows 10 inside
-the virtual machine mounts the exposed SSD and uses it as a normal
+To evaluate \ours{} with various ransomware programs, we create a
+virtual machine that is directly connected to a dedicated SSD
+exposed by the Linux as a raw block device.  Windows 10 inside the
+virtual machine mounts the exposed SSD and uses it as a normal
 storage device, storing user files. This setup allows us to run a
 variety of ransomware programs atop Linux's block I/O layer with
-minimal I/O stack interventions. Fig.~\ref{fig:expenv} illustrates a block diagram of our experimental setup with the open-channel SSDs.
+minimal I/O stack interventions. Fig.~\ref{fig:platform}(c)
+illustrates a block diagram of our experimental setup with the
+open-channel SSDs.
 
 
 %\subsection{Experimental Results}
@@ -1727,9 +1727,9 @@ accurately without relying on LBA-based overwriting patterns.
 		Data structure   	& Unit size & \# of entries & DRAM size (MB) \\
 		\hline
 		\hline
-		Hash table 		&   42 Bytes & 250,000 & 10 MB \\ 
-		Counting table		& 12 Bytes & 1,000 & 0.03MB \\ 
-		Recovery Queue		& 12 Bytes &   2,621,440 &  30 MB \\ 
+		Hash table 			& 42 Bytes 	& 250,000 		& 10 MB \\ 
+		Counting table		& 12 Bytes 	& 1,000 		& 0.03MB \\ 
+		Recovery Queue		& 12 Bytes 	& 2,621,440 	&  30 MB \\ 
 		\hline
 	\end{tabular}
 	\label{tab:size_summary}
