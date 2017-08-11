@@ -983,6 +983,43 @@ For the training algorithm of the tree, we used ID3~\cite{quinlan86}.
 	\caption{Design of \ours{} }
 \end{figure*}
 
+\begin{algorithm}[t]
+        \caption{$\mathsf{Ransomware Detection}$} \label{alg:detect}
+        {\small
+        \begin{algorithmic}[1]
+        \REQUIRE $N$
+        \FOR {all req$_i$}
+        \IF {the time slice expires}
+            \STATE Calculate 6 attributes for $N$ time slices
+            \STATE $ransom_t$=DecisionTree$_{ID3}$(6 attributes)
+            \STATE $Score=Score+ransom_t$
+            \STATE Slide TimeWindow by one time slice
+            \STATE $Score=Score-ransom_{t-10}$ 
+        \ENDIF
+        \IF {req$_i$ is write-req}
+            \IF {there is a read entry for req$_i$ in the counting table}
+                \STATE UpdateEntryW()
+                \IF {not all lba before req$_i$ in the entry are overwritten}
+                    \STATE SplitEntry()
+                \ENDIF
+                \IF {there is an entry overlapped}
+                    \STATE MergeEntry()
+                \ENDIF
+            \ENDIF
+        \ELSE
+            \IF {there is no entry of req$_i$} 
+                \IF {there is an entry overlapped}
+                    \STATE UpdateEntryR() and/or MergeEntry()
+                \ELSE
+                    \STATE NewEntry()
+                \ENDIF
+            \ENDIF
+        \ENDIF
+        \ENDFOR
+        \end{algorithmic}
+        }
+\end{algorithm}
+
 
 {\bf Data structure for detection:}
 All I/O requests are to be monitored for ransomware detection, and each request consists of four items: 
@@ -1016,7 +1053,9 @@ $OWST$ is the current time slice's $OWIO$ divided by $WIO$.
 Finally, $OWSLOPE$ is the value of $OWIO$ divided by $PWIO$ as shown in \textcircled{3} of Fig.~\ref{fig-slw}.
 
 
-{\bf Basic functions:} By example, how to keep track of run-length of 
+{\bf Basic functions:} 
+The detection algorithm is described in Algorithm~\ref{alg:detect}.
+By example, how to keep track of run-length of 
 overwriting during each time slice and window is described in Fig.~\ref{fig-update}.  
 IOReqs used in this example are assumed to have (IOMode, LBA) and Length is 1
 for explanation. 
@@ -1024,16 +1063,16 @@ At $t=0$, hash table and counting table are initially empty.
 When the first IOReq (1, R) is received, the hash table is looked up to find an entry 
 in the counting table. If there is no entry of the key ``1'', \ours{} creates
 a new entry in the counting table with NewEntry function and registers it with the 
-key value ``1'' in the hash table. NewEntry function updates as follows: Time is set to 0 
+key value ``1'' in the hash table (Line 24). NewEntry function updates as follows: Time is set to 0 
 (=the current time slice), LBA is set to 1 (=the IOReq's LBA), RL is set to 1,
 WL is set to 0 because it is a read IO. When the second IOReq (2, R) is received, 
 there is no entry with the key value 2 in the hash table. However, there is 
 an entry with the key 1 adjacent to LBA 2. In this case, it does not create 
 a new entry but updates the adjacent entry with UpdateEntryR function for the second IOReq,
-because the second IOReq (2, R) is a consecutive request of the first IOReq (1, R).
+because the second IOReq (2, R) is a consecutive request of the first IOReq (1, R) (Line 22).
 UpdateEntryR function incremented the value of RL by one. (3, R) is also updated 
-in the same manner. And at checkpoint 1, the time window slides by the time slice 
-to calculate the 6 attributes. 
+in the same manner (Line 22). And at checkpoint 1, the time window slides by the time slice 
+to calculate the 6 attributes (Line 6). 
 For example, $IO$ is 3, because there have been 3 IOReqs, 
 and $OWIO$ is 0 because there was no overwriting. 
 
@@ -1042,76 +1081,43 @@ and $OWIO$ is 0 because there was no overwriting.
 	\caption{Update window and detect ransomware activity}\label{fig-sw}
 \end{figure}
 After sliding the time window at checkpoint 1, the fourth IOReq (1,R) is received at 
-$t=1$. The IOReq is dropped because there is already an entry of the LBA. 
+$t=1$. The IOReq is dropped because there is already an entry of the LBA (Line 26). 
 The next IOReq is (4, W) and there is no entry having the IOReq's LBA 4, 
-but it is dropped because it is just write IO. 
+but it is dropped because it is just write IO (Line 18). 
 To count the number of overwritings, the counting table stores only write IO with the same LBA 
 as that of a read IO request within a time window. The next IOReq (3, W) has an entry 
 in the counting table. The entry indicates that there was a read IO from LBA 1 to 3, 
 but write IO's LBA from IOReq is 3. 
  That is, LBA 1 and 2 are not overwritten, but only LBA 3 should be overwritten.
 SpliteEntry function splits the entry into two: one has a (Time 0, LBA 1, RL 2, WL 0) tuple,
-and other has a (Time 1, LBA 3, RL 1, WL 1). 
+and other has a (Time 1, LBA 3, RL 1, WL 1) (Line 11 and 13). 
 
 At check point 2 ($t=2$), $OWIO$ is 1, which means that overwriting occurred once. 
 Since $WIO$ is 2, $OWST$ is 0.5 because it is $OWIO$ / $WIO$. 
-The number of entries is 2 and the total sum of WL is 1, and thus, $AVGWIO$ is 1/2. 
+The number of entries is 2 and the total sum of WL is 1, and thus, $AVGWIO$ is 1/2 (Line 3). 
 IOReqs for the next time slice ($t=2s-3s$) are treated the same as before. 
 IOReq's examples of the last time slice ($t=3s-4s$) shows how MergeEntry function works.
-IOReq (2, W) updates the entry with LBA 1 by UpdateEntryW function. 
+IOReq (2, W) updates the entry with LBA 1 by UpdateEntryW function (Line 11). 
 Now, LBA1 and LBA2 have been all overwritten, and WL is set to 2. 
 Also, there is a entry having a consecutive LBA next to them, and thus,
-MergeEntry function merges two entries (the dotted box) together into one.
+MergeEntry function merges two entries (the dotted box) together into one (Line 16).
 Consequently, at check point 4, $IO$ is 4 and $WIO$ is 4. $OWIO$ is 2 and $OWST$ is 2/4 because overwriting occurred twice. $AVGWIO$ is 4/2 because counting table has two entries,
 and the sum of WL in the two entries is 4. $PWIO$ is 2 because it is the sum of 
 all WLs of the previous check point 3, and $OWSLOP$E is 1/1 because it is the $PWIO$ of 
 the previous checkpoint divided by the current $OWIO$.
-\begin{algorithm}[t]
-        \caption{$\mathsf{Ransomware Detection}$} \label{alg:detect}
-        {\small
-        \begin{algorithmic}[1]
-        \REQUIRE $N$
-        \FOR {all req$_i$}
-        \IF {the time slice expires}
-            \STATE Slide TimeWindow by one time slice
-            \STATE Calculate 6 attributes for $N$ time slices
-            \STATE $ransom$ += ID3(6 attributes)
-        \ENDIF
-        \IF {req$_i$ is write-req}
-            \IF {there is a read entry for req$_i$ in the counting table}
-                \STATE UpdateEntryW()
-                \IF {not all lba before req$_i$ in the entry are overwritten}
-                    \STATE SplitEntry()
-                \ENDIF
-                \IF {there is an entry overlapped}
-                    \STATE MergeEntry()
-                \ENDIF
-            \ENDIF
-        \ELSE
-            \IF {there is no entry of req$_i$} 
-                \IF {there is an entry overlapped}
-                    \STATE UpdateEntryR() and/or MergeEntry()
-                \ELSE
-                    \STATE NewEntry()
-                \ENDIF
-            \ENDIF
-        \ENDIF
-        \ENDFOR
-        \end{algorithmic}
-        }
-\end{algorithm}
 
 {\bf \ours{}'s real-time detection:} Ransomware detection algorithm utilizes
 the counting table and the basic functions to determine whether a ransomware is in action or not. 
-When a time slice expires, it drops the obsolete entries in the counting table, 
-and six features are calculated using the counting table. 
-Values of the six features is fed to the ID3 decision tree to obtain 0 or 1 results,
+When a time slice expires, 
+it drops the obsolete entries in the counting table by sliding the window (Line 6),
+and adjust $Score$ by subtracting the dropped entry (Line 7).
+Six feature values are calculated using the counting table (Line 3),
+and the values are fed to the ID3 decision tree to obtain 0 or 1 results (Line 4),
 where 1 means that the system at the current checkpoint is highly likely to be under attack
-of a ransomware. For a time window (10s), the outputs of the decision tree are all added up to 
-give a score ranging from 0 to 10 as shown in Fig.~\ref{fig-sw}. 
+of a ransomware, and 0 means not. For a time window (10s), the outputs of the decision tree are all added up to 
+give a score ranging from 0 to 10 as shown in Fig.~\ref{fig-sw} (Line 5). 
 To determine whether ransomware is active or not, we used
 a threshold value 3 in our experiment (See section~\ref{sec:peval}).
-The detection algorithm is described in Algorithm~\ref{alg:detect}.
 
 
 
@@ -1450,12 +1456,12 @@ open-channel SSDs.
 \end{figure*}
 
 
-\subsection{Ransomware Data Sets}
+\subsection{Ransomware data sets}
 For the evaluation, we collected various well-known ransomwares such as 
 Locky.bdf, Locky.bbs, Zerber.ufb, 
 WannaCry, Jaff, Mole, GlobeImposter and CryptoShield~\cite{virustotal}. 
 As well as those, we have artificially implemented new ransomwares that are not
-reported to the public using open source ransomewares from github~\cite{virgang,poc}
+reported to the public using open source ransomwares from github~\cite{virgang,poc}
 -- one of them has an `in-place update' encryption attack; the other is based on an `out-of-place update'.
 To evaluate \ours{}'s performance,
 we set up the environment where ransomware ran with typical background applications 
@@ -1659,7 +1665,7 @@ ran individual traces on it. As depicted in
 Fig.~\ref{fig:flash-gc-cost}, even under the worst-case situation,
 the SSD-Inside FTL required 22\% more page copies, on average,
 compared with the conventional FTL. For the traces except for
-{\color{red}Compression, VideoEncode, and Wannacry}, only a few
+Compression, VideoEncode, and WannaCry, only a few
 page copies were observed, regardless of the type of the FTL. This
 was because these workloads themselves did not require many page
 copies for cleaning.  We also conducted a set of experiments with
@@ -1669,7 +1675,7 @@ page copies caused by SSD-Insider were almost zero. This
 indicates that the effect of the \ours{} algorithms on the increase
 of garbage collect costs is negligible.
 
-{\bf DRAM Requirement:}
+{\bf DRAM requirement:}
 For the ransomware detection and recovery, \ours{} has to maintain additional
 data structures like a hash table, a counting table, and a recovery queue.
 TABLE~\ref{tab:size_summary} summarizes the size of DRAM required by \ours{}
@@ -1749,7 +1755,7 @@ accurately without relying on LBA-based overwriting patterns.
 		\hline
 		Hash table 			& 42 Bytes 	& 250,000 		& 10 MB \\ 
 		Counting table		& 12 Bytes 	& 1,000 		& 0.03MB \\ 
-		Recovery Queue		& 12 Bytes 	& 2,621,440 	&  30 MB \\ 
+		Recovery queue		& 12 Bytes 	& 2,621,440 	&  30 MB \\ 
 		\hline
 	\end{tabular}
 	\label{tab:size_summary}
@@ -1793,16 +1799,15 @@ a ransomware in class B does out-of-place overwriting, and a ransomware in
 class C reads a victim file, creats a new encrypted file having a victim file's data, 
 and deletes or overwrites the victim file.
 Sometimes, a ransomware wipes out the disk's free space, 
-and searches and destroies shadow copies.
-
-Considering that a ransomware's chance to get ransom increases when user data are 
+and searches and destroys shadow copies.
+ Considering that a ransomware's probability to receive ransom increases when user data are 
 unrecoverable, it is quite natural for a ransomware to overwrite original files 
 by encrypted data or random data after reading original files. 
 
 For detection of ransomwares, signature matching is the most popular tool 
 used by many anti-virus software,
 so it is an easy choice for an attacker to make variants not to have the same signature.
-Considering that even an unexperienced user can build easily variants 
+Because even an unexperienced user can build easily variants 
 using the ransomware-as-a-service such as TOX~\cite{walter15}, 
 detection with attack signatures has strong limitation. 
 To compensate this limitation of signature based approaches, 
@@ -1827,7 +1832,7 @@ CryptoDrop and Unveil monitors in real-time user's data for changes~\cite{scaife
 They use file type changes, drastic changes in file contents, 
 and Shannon entrypy as primary indicators 
 to distinguish ransomware's activity. It also uses deletion and file type funneling 
-of large number of files as secondary indicators. 
+of a large number of files as secondary indicators. 
 However, consistent monitoring of user file contents causes great overhead.
 CryptoDrop effectively detected ransomware's activity, but it was rather slow to detect
 the ransomware's activity, so some of the encrypted files could not be recovered 
