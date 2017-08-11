@@ -1,6 +1,6 @@
 set terminal postscript eps enhanced font 'Helvetica,16' linewidth 1
 set output 'fig.eps'
-set ylabel "Recovery time (second)" offset 1
+set ylabel "Recovery time (sec)" offset 1
 #set xlabel "Traces" offset 1
 set style data histograms
 set style histogram cluster gap 1

@@ -1,6 +1,6 @@
 set terminal postscript eps enhanced font 'Helvetica,16' linewidth 1
 set output 'fig.eps'
-set ylabel "Elapsed time (nanosecond)" offset 1
+set ylabel "Elapsed time (nanosec)" offset 1
 set style data histogram
 set style histogram rowstacked
 set style fill solid border -1

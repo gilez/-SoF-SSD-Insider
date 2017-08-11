@@ -1112,7 +1112,7 @@ When a time slice expires,
 it drops the obsolete entries in the counting table by sliding the window (Line 6),
 and adjust $Score$ by subtracting the dropped entry (Line 7).
 Six feature values are calculated using the counting table (Line 3),
-and the values are fed to the ID3 decision tree to obtain 0 or 1 results (Line 4),
+and the values are fed to the ID3 decision tree (DecisionTree$_{ID3}$) to obtain 0 or 1 results (Line 4),
 where 1 means that the system at the current checkpoint is highly likely to be under attack
 of a ransomware, and 0 means not. For a time window (10s), the outputs of the decision tree are all added up to 
 give a score ranging from 0 to 10 as shown in Fig.~\ref{fig-sw} (Line 5). 
@@ -1437,8 +1437,8 @@ open-channel SSDs.
         \subfigure[OutlookSync+Mole]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-7.png}}
         \subfigure[P2PDown+WannaCry]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-8.png}}
         \subfigure[WebSurfing+GlobeImposter]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-9.png}}
-        \subfigure[IOStress+CryptoShield]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-10.png}}
-        \subfigure[Compression+Mole]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-11.png}}
+        \subfigure[IOStress+CryptoShield\label{fig-accuracy-iostress}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-10.png}}
+        \subfigure[Compression+Mole\label{fig-accuracy-compress}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-11.png}}
         \subfigure[VideoEncode+Jaff]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-12.png}}
         \caption{\ours{}'s detection accuracy varying the score during a time window (10s):
         When the threshold score (or, the threshold frequency of the decision tree's reporting of ransomware activity 
@@ -1522,24 +1522,26 @@ threshold of the score value (or the frequency of which the
 decision tree reports ransomware activity for a time window) to
 detect ransomware.  Fig.~\ref{fig:accuracy} summarizes our
 experimental results on accuracy in terms of FAR/FRR.  Even though
-there is some variation depending on a scenario, for the threshold
+there is some variation depending on a scenario, with the threshold
 with 3, the detection algorithm could detect ransomware's
 activity accurately under all types of background applications.  We
 report that the worst background noise in terms of FRR 
-came from CPU- and IO-intensive jobs.  
+came from CPU- and IO-intensive jobs as shown 
+in Fig.~\ref{fig-accuracy-compress} and Fig.~\ref{fig-accuracy-iostress}.  
 That is, they interfered with ransomware to
 slow down the speed of overwriting by heavy usage of CPU and IO.
 In terms of FAR, the worst scenario
-came mostly from heavy overwriting type such as DataWiping and Database applications. 
+came mostly from heavy overwriting type such as DataWiping and Database applications
+as shown in Fig.~\ref{fig-accuracy-dw} and Fig.~\ref{fig-accuracy-db}. 
 This is because heavy overwriting applications confused our detector by
 their similarity in behavior.
 However, as can be seen in Fig.~\ref{fig:accuracy}, even in such
 heavy CPU, IO usage and heavy overwriting scenarios, \ours{} detected very accurately
-with the threshold value 3.  
-FRRs in all scenarios were 0\%, and FARs were close to 0\%, 
+ransomware activity with the threshold value 3.  
+FRRs in all scenarios were 0\%, and FARs were close to 0\% with the threshold value 3, 
 which means that \ours{} did not miss any ransomware activity, 
 but sometimes falsely recognized normal application's activity as that of ransomware.
-This might interrupt users, but it would rarely happen with heavy
+This might interrupt users, but it would rarely happen only with heavy
 DB update, data wiping, and software install even at most FAR 5\%
 as shown in Fig.~\ref{fig-accuracy-dw}, Fig.~\ref{fig-accuracy-in},
 and Fig.~\ref{fig-accuracy-db}.
