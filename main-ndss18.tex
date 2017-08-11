@@ -1458,36 +1458,42 @@ open-channel SSDs.
 
 
 \subsection{Ransomware data sets}
-For the evaluation, we collected various well-known ransomwares such as 
-Locky.bdf, Locky.bbs, Zerber.ufb, 
-WannaCry, Jaff, Mole, GlobeImposter and CryptoShield~\cite{virustotal}. 
-As well as those, we have artificially implemented new ransomwares that are not
-reported to the public using open source ransomwares from github~\cite{virgang,poc}
--- one of them has an `in-place update' encryption attack; the other is based on an `out-of-place update'.
-To evaluate \ours{}'s performance,
-we set up the environment where ransomware ran with typical background applications 
-including three disturbing application types: applications with high rate of overwritings, 
-CPU-intensive, and IO-intensive applications. Heavy overwriting applications confuses our detector,
-CPU/IO-intensive applications disturbs our detector by slowing down ransomware's activity.
-Even the normal application class included applications with relatively high IO compared to user's casual usage pattern.
-The background applications were divided into four types:
-1) Heavy overwriting type includes data wiping tool (WPM satisfying DoD 5220.22-M), cloud storage synchronization (Dropbox), and heavy database update (MySQL 5.5), 
-2) IO-intensive type includes IO stress tool such as IOMeter, HDtunepro, CrystalDiskMark, 
-3) CPU-intensive type includes compression (Bandizip), video encoding (Daum pot encoder),
-4) Normal app type includes video playback (Daum pot player),
-email synchronization (Outlook), P2P downloading (BitTorrent), web-browsing (Chrome), 
-SQLite activities (Kakaotalk), software installation such as Viusal studio 2015 and AutoCAD 2016.
+For the evaluation, we collected various well-known ransomwares
+such as Locky.bdf, Locky.bbs, Zerber.ufb, WannaCry, Jaff, Mole,
+GlobeImposter, and CryptoShield~\cite{virustotal}.  As well as
+those, we have artificially implemented two new ransomwares that
+are not reported to the public using open source ransomwares from
+github~\cite{virgang,poc} -- one of them has an `in-place update'
+encryption attack; the other is based on an `out-of-place update'.
+To evaluate \ours{}'s performance, we set up the environment where
+ransomware ran with typical background applications, including
+{\color{red}three disturbing application types}: applications with high rate of
+overwriting, CPU-intensive, and IO-intensive applications. While
+heavy overwriting applications confuse our detector,
+CPU/IO-intensive applications disturb the detector by slowing down
+ransomware's activity.  Even the normal application class included
+applications with relatively high IO compared to user's casual
+usage pattern.  {\color{red}The background applications were divided into four
+types}: 1) Heavy overwriting type includes data wiping tool (WPM
+satisfying DoD 5220.22-M), cloud storage synchronization (Dropbox),
+and heavy database update (MySQL 5.5), 2) IO-intensive type
+includes IO stress tools such as IOMeter, HDtunepro,
+CrystalDiskMark, 3) CPU-intensive type includes compression
+(Bandizip), video encoding (Daum pot encoder), 4) Normal app type
+includes video playback (Daum pot player), email synchronization
+(Outlook), P2P downloading (BitTorrent), web-browsing (Chrome),
+SQLite activities (Kakaotalk), and software installation such as
+Viusal studio 2015 and AutoCAD 2016.
 
-Various combinations of a ransomware and a background application were used 
-for learning decision trees with ID3, and also for performance evaluation. 
-The whole dataset and evaluation scenarios for the experiment are summarized in Table~\ref{tab:benchmarks}. 
-For evaluation, experiment with each combination was conducted 20 times, and the average was taken.
-We also note that as shown in the table no ransomware for training is included for testing to show 
-how accurately and promptly \ours{} detects unknown ransomwares.
-%Decision tree learning was done using 13 combinations 
-%using Locky.bdf, Locky.bbs, Zerber, ufb and 12 ordinary applications. 
-%Performance evaluation used 12 combination using Wanacry, Jaff, Mole, CryptoShield, 
-%In-house (inplace), and In-house (outplace) ransomware and 11 ordinary applications. 
+Various combinations of a ransomware and a background application
+were used for training decision trees with ID3, and also for
+performance evaluation.  The whole dataset and evaluation scenarios
+for the experiment are summarized in Table~\ref{tab:benchmarks}.
+{\color{red}For evaluation, experiment with each combination was conducted 20
+times, and the average was taken}.  We also note that as shown in
+the table no ransomware for training is included for testing to
+show how accurately and promptly \ours{} detects unknown
+ransomwares.
 
 For objective evaluations of various algorithms, it is necessary to
 repeat the same PC usage scenarios on SSDs with different storage
@@ -1496,15 +1502,15 @@ same scenarios on SSDs multiple times because ransomwares are
 controlled by C\&C servers and are triggered by them randomly. For
 this reason, when a ransomware program is activated under
 aforementioned PC usage scenarios, we collect block I/O traces at
-the Linux block I/O layer using a blktrace tool~\cite{blktrace}.  Only
-block I/O related information, including an I/O type (a read or a
-write), an LBA offset, an LBA length, and an I/O submission time,
-are gathered using the trace collection tool.  With a trace-replay
-tool, we are able to replay I/O requests captured in the trace
-files at exactly the same timing.  Consequently, this trace
-collection and replay tools allow us to evaluate and compare the
-performance of different ransomware detection/recovery algorithms
-under the same I/O behaviors. 
+the Linux block I/O layer using a blktrace tool~\cite{blktrace}.
+Only block I/O related information, including an I/O type (a read
+or a write), an LBA offset, an LBA length, and an I/O submission
+time, are gathered using the trace collection tool.  With a
+trace-replay tool, we are able to replay I/O requests captured in
+the trace files at exactly the same timing.  Consequently, this
+trace collection and replay tools allow us to evaluate and compare
+the performance of different ransomware detection/recovery
+algorithms under the same I/O behaviors. 
 
 
 \subsection{Performance evaluation}\label{sec:peval}
