@@ -1790,89 +1790,98 @@ Using a copy of the recovery queue kept in NAND flash, \ours{}
 can recover infected files even after a power failure and a
 ransomware attack happen simultaneously.
 
+
 \section{Related Work}
 
+Crypto-ransomwares have been evolving into many variants mainly for
+two purposes: to avoid being detected and to hinder recovery by
+anti-ransomware software.  The chance to recover encrypted data
+increases when the ransomware uses a symmetric key cryptography,
+leaves behind the decryption key, and any recovery software
+successfully dumps the system memory holding the key while
+encrypting data. Recently, ransomwares start to use the public key
+cryptography that requires only an encryption key at the victim's
+machine not to reveal the decryption key.  To make the recovery
+much harder, instead of using a single global public key, a unique
+public key for each malware instance can be used~\cite{orman16}.
+Public key-based ransomwares are, however, very slow, so sometimes
+they use compression to reduce the amount of data to be
+encrypted~\cite{maktub}.  Owing to the public key cryptography, the
+efforts to recover the decryption key at the victim's machine
+become of no avail.
 
-Crypto-ransomwares have been evolving into many variants mainly for two purposes: 
-to avoid being detected and to hinder recovery by anti-ransomware software. 
-The chance to recover encrypted data increases
-when the ransomware uses a symmetric key cryptography, leaves behind the decryption key, 
-and any recovery software successfully dumps the system memory holding the key 
-while encrypting data. Recently, ransomwares start to use the public key cryptography 
-that requires only an encryption key at the victim's machine not to reveal the decryption key.
-To make the recovery much harder, instead of using a single global public key,
-a unique public key for each malware instance can be used~\cite{orman16}. 
-Public key-based rasomwares are, however, very slow, so sometimes they use compression 
-to reduce the amount of data to be encrypted~\cite{maktub}.
-Owing to the public key cryptography, 
-the efforts to recover the decryption key at the victim's machine become of no avail.
+Scaife \etal categorized a ransomware into three types according to
+overwriting methods: a ransomware in class A overwrites encrypted
+data in-place, a ransomware in class B does out-of-place
+overwriting, and a ransomware in class C reads a victim file,
+creates a new encrypted file having a victim file's data, and
+deletes or overwrites the victim file~\cite{scaife16}.  Sometimes,
+a ransomware wipes out the disk's free space, and searches and
+destroys shadow copies.  Considering that a ransomware's
+probability to receive ransom increases when user data are
+unrecoverable, it is quite natural for a ransomware to overwrite
+original files by encrypted data or random data after reading
+original files. 
 
-Scaife \etal categorized a ransomware into three types according to 
-overwriting methods: a ransomware in class A overwrites encrypted data in-place, 
-a ransomware in class B does out-of-place overwriting, and a ransomware in 
-class C reads a victim file, creats a new encrypted file having a victim file's data, 
-and deletes or overwrites the victim file.
-Sometimes, a ransomware wipes out the disk's free space, 
-and searches and destroys shadow copies.
- Considering that a ransomware's probability to receive ransom increases when user data are 
-unrecoverable, it is quite natural for a ransomware to overwrite original files 
-by encrypted data or random data after reading original files. 
+For detection of ransomwares, signature matching is the most
+popular tool used by many anti-virus software, so it is an easy
+choice for an attacker to make variants not to have the same
+signature.  Because even an inexperienced user can build easily
+variants using the ransomware-as-a-service such as
+TOX~\cite{walter15}, detection with attack signatures has a strong
+limitation.  To compensate this limitation of signature based
+approaches, frequencies of opcode ngrams were used as features of
+ransomwares~\cite{canfora15}, and encryption attempts and
+displaying ransom requests were regarded as generic indicators of
+compromise for detecting Android ransomware
+activity~\cite{andronio15}.  Yang \etal presented an idea of a
+static and dynamic analysis-based solution for Android devices, but
+the system has not been implemented~\cite{yang15}.
 
-For detection of ransomwares, signature matching is the most popular tool 
-used by many anti-virus software,
-so it is an easy choice for an attacker to make variants not to have the same signature.
-Because even an unexperienced user can build easily variants 
-using the ransomware-as-a-service such as TOX~\cite{walter15}, 
-detection with attack signatures has strong limitation. 
-To compensate this limitation of signature based approaches, 
-frequencies of opcode ngrams were used as features of ransomwares~\cite{canfora15},
-and encryption attempts and displaying ransom requests were regarded 
-as generic indicators of compromise for detecting Android ransomware activity~\cite{andronio15}.
-Yang \etal presented an idea of a static and dynamic analysis-based solution 
-for Android devices, but the system has not been implemented~\cite{yang15}.
+Instead of checking ransomware signatures, a file integrity monitor
+can detect ransomware activities. Tripwire is a system file
+monitoring tool, doing hash comparison for checking illegal
+modification, but it is not appropriate for user files which might
+change frequently~\cite{kim94}.
 
-Instead of checking ransomware signature, file integrity monitor can detect 
-ransomware activity. Tripwire is a system file monitoring tool, doing hash comparison
-for checking illegal modification, but it is not appropriate for user files 
-which might change frequently~\cite{kim94}.
-
-Drastic changes of a user file's content in a short time period may be a strong indicator 
-for ransomware activity. Also, encrypted files have very high entropy, but ordinary files not. 
-Though it might be confusing to differentiate compressed files 
-because both have high entropy, 
-encryption and compression can be distinguished by checking Chi square distribution 
-or by Monte Carlo pi approximation's accuracy. 
-CryptoDrop and Unveil monitors in real-time user's data for changes~\cite{scaife16,kharaz}.
-They use file type changes, drastic changes in file contents, 
-and Shannon entrypy as primary indicators 
-to distinguish ransomware's activity. It also uses deletion and file type funneling 
-of a large number of files as secondary indicators. 
-However, consistent monitoring of user file contents causes great overhead.
-CryptoDrop effectively detected ransomware's activity, but it was rather slow to detect
-the ransomware's activity, so some of the encrypted files could not be recovered 
-(in their experiement, they lost 10 files among 5,100 files).
-To detect early before a ransomware encrypts any file, Moore proposed to use honeypot~\cite{moore16}.
+Drastic changes of a user file's content in a short time period may
+be a strong indicator for ransomware activities. Also, encrypted
+files have very high entropy, but ordinary files not.  Though it
+might be confusing to differentiate compressed files because both
+have high entropy, encryption and compression can be distinguished
+by checking Chi square distribution or by Monte Carlo pi
+approximation's accuracy.  CryptoDrop and Unveil monitors in
+real-time user's data for changes~\cite{scaife16,kharaz}.  They use
+file type changes, drastic changes in file contents, and Shannon
+entropy as primary indicators to distinguish ransomware's activity.
+It also uses deletion and file type funneling of a large number of
+files as secondary indicators.  However, consistent monitoring of
+user file contents causes great overhead.  CryptoDrop effectively
+detected ransomware's activity, but it was rather slow to detect
+the ransomware's activity, so some of the encrypted files could not
+be recovered. For example, in their experiment, they lost 10 files
+among 5,100 files.  To detect early before a ransomware encrypts
+any files, Moore proposed to use honeypot~\cite{moore16}.
 
 Orman described a monitoring technique, which observes in real-time
-the repetitive loop that both symmetric and public key algorithms 
-such as AES and RSA should have necessarily~\cite{orman16}.
-However, it should be noted that monitoring calls to encryption libraries is not enough, 
-because encryption can be easily implemented using prevailed open source software. 
-Canfora \etal developed detection schemes of ransomware's abnormal behavior  
-using Hidden Markov Model (HMM) and structural entropy~\cite{canfora16}.
-Cabaj \etal utilized Software-Defined Network (SDN) to detect and mitigate 
+repetitive loops that both symmetric and public key algorithms such
+as AES and RSA should have necessarily~\cite{orman16}.  However, it
+should be noted that monitoring calls to encryption libraries is
+not enough, because encryption can be easily implemented using
+prevailed open source software.  Canfora \etal developed detection
+schemes of ransomware's abnormal behavior using Hidden Markov Model
+(HMM) and structural entropy~\cite{canfora16}.  Cabaj \etal
+utilized Software-Defined Network (SDN) to detect and mitigate
 ransomware~\cite{cabaj16}.
 
-Dietrich \etal grouped more than 213,671 screenshots of executed malware samples
-into subsets of structurally similar images and used the visual appearance for ransomware 
-campaign. Kharaz \etal similarly detected successfully ``screen locker'' by observing 
-a persistent desktop message~\cite{kharaz}.
+Dietrich \etal grouped more than 213,671 screenshots of executed
+malware samples into subsets of structurally similar images and
+used the visual appearance for ransomware campaign. Kharaz \etal
+similarly detected successfully ``screen locker'' by observing a
+persistent desktop message~\cite{kharaz}.
 
-
-
-A pre-OS approach was proposed by Kaspersky Lab. but it runs with a file system instead of 
-running by block-lelvel~\cite{gusarov14}.
-
+A pre-OS approach was proposed by Kaspersky Lab. but it runs with a
+file system instead of running by block-level~\cite{gusarov14}.
 
 While there have been a number of studies that have attempted to
 improve the performance and lifetime of NAND flash-based
