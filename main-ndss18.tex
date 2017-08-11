@@ -1623,8 +1623,8 @@ left.
 \end{figure}
 {\bf I/O elapsed time:} 
 We evaluated the impact of the \ours{} algorithms on I/O elapsed
-times.  For the 12 traces summarized in
-Table~\ref{fig:flash-avg-resp}, we measured read and write elapsed
+times.  For the 12 traces for the testing in
+Table~\ref{tab:benchmarks}, we measured read and write elapsed
 times increased by \ours{} algorithms which are depicted in
 Fig.~\ref{fig:flash-avg-resp}.  Fig.~\ref{fig:flash-avg-resp}
 includes the length of time spent by the FTL codes and the \ours{}
@@ -1641,9 +1641,10 @@ On the other hand, the extra software overheads incurred by the
 recovery) were just 147 $n$s and 254 $n$s for 4-KB reads and
 writes, respectively. Considering that NAND chip latencies for
 reading/writing data from/to 4-KB flash pages are 50 $\mu$s and
-500-1,000 $\mu$s~\cite{micron-nand}, these additional delays
-account for a negligible portion of the total I/O response times
-and do not affect user-perceived I/O response times.
+1,000 $\mu$s~\cite{micron-nand}, these additional delays account
+for a negligible portion of the total I/O response times -- 0.3\%
+for reads and 0.02\% for writes -- and do not affect user-perceived
+I/O response times.
 
 \begin{figure}[t] 
 	\centering 
@@ -1668,7 +1669,7 @@ the SSD-Inside FTL required 22\% more page copies, on average,
 compared with the conventional FTL. For the traces except for
 Compression, VideoEncode, and WannaCry, only a few
 page copies were observed, regardless of the type of the FTL. This
-was because these workloads themselves did not require many page
+was because these workloads did not require many page
 copies for cleaning.  We also conducted a set of experiments with
 70\% SSD  space utilization to understand garbage collection overheads
 under the average-case scenario, and found that the number of extra
