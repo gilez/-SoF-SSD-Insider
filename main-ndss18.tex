@@ -1516,7 +1516,6 @@ algorithms under the same I/O behaviors.
 
 \subsection{Performance evaluation}\label{sec:peval}
 {\bf Ransomware detection accuracy:}
-{\color{blue}
 To evaluate the accuracy of SSD-Insider detection algorithms, we
 measured FAR and FRR of the detection algorithm varying the
 threshold of the score value (or the frequency of which the
@@ -1524,22 +1523,26 @@ decision tree reports ransomware activity for a time window) to
 detect ransomware.  Fig.~\ref{fig:accuracy} summarizes our
 experimental results on accuracy in terms of FAR/FRR.  Even though
 there is some variation depending on a scenario, for the threshold
-less than 3, the detection algorithm could detect ransomware's
+with 3, the detection algorithm could detect ransomware's
 activity accurately under all types of background applications.  We
-report that the worst background noise came from heavy overwriting jobs.  
+report that the worst background noise in terms of FRR 
+came from CPU- and IO-intensive jobs.  
 That is, they interfered with ransomware to
 slow down the speed of overwriting by heavy usage of CPU and IO.
+In terms of FAR, the worst scenario
+came mostly from heavy overwriting type such as DataWiping and Database applications. 
+This is because heavy overwriting applications confused our detector by
+their similarity in behavior.
 However, as can be seen in Fig.~\ref{fig:accuracy}, even in such
-heavy CPU and IO usage scenarios, \ours{} detected very accurately
-for the threshold value 3.  With the threshold value 3, FRRs in all
-scenarios were 0\%, but FARs were not 0\%, which means that \ours{}
-did not miss any ransomware activity, but sometimes falsely
-recognized normal application's activity as that of ransomware.
+heavy CPU, IO usage and heavy overwriting scenarios, \ours{} detected very accurately
+with the threshold value 3.  
+FRRs in all scenarios were 0\%, and FARs were close to 0\%, 
+which means that \ours{} did not miss any ransomware activity, 
+but sometimes falsely recognized normal application's activity as that of ransomware.
 This might interrupt users, but it would rarely happen with heavy
 DB update, data wiping, and software install even at most FAR 5\%
 as shown in Fig.~\ref{fig-accuracy-dw}, Fig.~\ref{fig-accuracy-in},
 and Fig.~\ref{fig-accuracy-db}.
-}
 
 {\bf Detection latency:}
 $N$, the size of the time window determines \ours{}'s accuracy and
