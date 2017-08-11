@@ -466,42 +466,38 @@
 
 
 \begin{abstract}
-%\boldmath
-Ransomware is malware that encrypts victim's data, 
-where the decryption key is released after a ransom is paid by the data owner to the attacker.
-Recently, many ransomware attacks were reported, making anti-ransomware a crucial issue in the security research community.  
-In this paper, we take a new approach to defending against ransomware inside SSD. 
-To realize the idea of defense-inside-SSD, two challenging problems should be solved:
-both a lightweight detection algorithm and a perfect recovery algorithm 
-to be used as a part of firmware of SSD should be developed. 
-To detect accurately ransomware activity, 
-we propose a new set of behavioral features on 
-ransomware's overwriting pattern, which is invariant across various ransomwares 
-and is lightweight enough to be extracted from block I/O request header only, not seeing the payload.
-By presenting various experimental results with real ransomware samples and various applications, 
-the feature set is shown to be strong indicators of ransomware activity. 
-For perfect and instant recovery, we propose using the delayed deletion feature of SSD, 
-which is intrinsic to SSD.
-To show the feasibility, the detection and the recovery algorithms are implemented 
-as a part of firmware in an open-channel SSD as a working prototype called \ours{}.
-Our prototype of \ours{}, connected to an x86 host via PCIe, with a custom FPGA controller, 
-offers a total capacity of 512 GB and I/O performance comparable to commercial PCIe SSDs.
-Using eight real-world ransomwares plus two in-house ransomwares 
-with various background applications running,
-we evaluate \ours{} in terms of performance and overhead.
-%detection accuracy, detection latency, 
-%recovery time, and data consistency. Also, we look into \ours{}'s cost in terms of
-%I/O elapsed time, garbage collection, and DRAM requirement. 
-Evaluation results show that \ours{}'s detection accuracy is 0\% FRR and 5\% FAR in the worst case
-when heavy overwriting resembling ransomware's activity such as data wiping occurs.
-Its detection latency is at most 10s. \ours{} recovers instantly an infected SSD within 1s with 0\% data loss. 
-The extra software overheads incurred by the \ours{} (including both ransomware detection and
-recovery) is just 147 $n$s and 254 $n$s for 4-KB reads and writes, respectively, 
-which is negligible considering NAND chip latency (50-500 $\mu$s). 
-Garbage collection overhead under the average-case scenario
-was almost zero extra page copies. In the worst case (at 90\% utilization),
-22\% more page copies, on average, is observed.
-The amount of memory for \ours{} is only 40.03MB. 
+Ransomware is malware that encrypts victim's data, where the
+decryption key is released after a ransom is paid by the data owner
+to the attacker.  Recently, many ransomware attacks were reported,
+making anti-ransomware a crucial issue in the security research
+community.  In this paper, we take a new approach to defending
+against ransomware inside NAND flash-based SSDs.  To realize the
+idea of defense-inside-SSDs, two challenging problems should be
+solved: both a lightweight detection algorithm and a perfect
+recovery algorithm to be used as a part of firmware of SSDs should
+be developed.  To detect accurately ransomware activity, we propose
+a new set of behavioral features on ransomware's overwriting
+pattern, which is invariant across various ransomwares and is
+lightweight enough to be extracted from block I/O request headers
+only, not seeing the payload.  By presenting various experimental
+results with real ransomware samples and various applications, the
+feature set is shown to be strong indicators of ransomware
+activity.  For perfect and instant recovery, we propose using the
+delayed deletion feature of flash-based SSDs, which is intrinsic to
+NAND flash.  To show the feasibility, the detection and the
+recovery algorithms are implemented atop a high-speed open-channel
+SSD as a working prototype called \textit{\ours{}}. Using eight
+real-world ransomwares plus two in-house ransomwares with various
+background applications running, we evaluate \ours{} in terms of
+performance and overhead.  Evaluation results show that \ours{}'s
+detection accuracy is 0\% FRR and 5\% FAR in the worst case when
+heavy overwriting resembling ransomware's activity such as data
+wiping occurs.  Its detection latency is at most 10s.  \ours{}
+recovers instantly an infected SSD within 1s with 0\% data loss.
+The extra software overheads incurred by the \ours{} is just 147
+$n$s and 254 $n$s for 4-KB reads and writes, respectively, which is
+negligible considering NAND chip latency (50-1000 $\mu$s).  The
+amount of memory for \ours{} is only 40.03MB. 
 \end{abstract}
 % IEEEtran.cls defaults to using nonbold math in the Abstract.
 % This preserves the distinction between vectors and scalars. However,
@@ -1125,9 +1121,9 @@ a threshold value 3 in our experiment (See section~\ref{sec:peval}).
 
 \label{sec:recovery}
 In order to support a recovery of original files unaffected by
-ransomware, the \ours{} recovery algorithm keeps track of all
-the changes made to the files, maintaining their original versions.
-In addition, the recovery algorithm retains data persistence and
+ransomware, the \ours{} recovery algorithm keeps track of all the
+changes made to the files, maintaining their original versions.  In
+addition, the recovery algorithm retains data persistence and
 consistency, strong requirements that must be guaranteed by any
 storage device, and does not compromise I/O performance.  Finally,
 the recovery algorithms must be designed in a cost-effective manner
@@ -1141,8 +1137,7 @@ leaving change logs for recovery and then detail its recovery
 process.  Finally, we discuss technical issues related to garbage
 collection.
 
-
-{\bf I/O Requests handling} 
+{\bf I/O Requests handling:} 
 We first explain how a conventional FTL handles overwrite requests from the
 host and then describes the different way the SSD-Insider FTL does to support a
 quick data recovery.  In Fig~\ref{fig:io-handling}, the host system writes nine
@@ -1268,7 +1263,7 @@ and \textcircled{4}).  Finally, the victim block is erased
 \end{figure}
 
 
-{\bf Data recovery process} 
+{\bf Data recovery process:} 
 As pointed out before, data recovery in \ours{} is done by
 simply replacing the entries in the mapping table with ones having the same LBAs
 in the queue.  Once the data recovery process is
@@ -1307,7 +1302,7 @@ of experiments on EXT4, we found that file-system was successfully
 recovered to a consistent state with \texttt{fsck} tool, 
 which will be shown in section~\ref{sec:peval}.
 
-{\bf Garbage collection} 
+{\bf Garbage collection:} 
 Garbage collection is the only way of permanently erasing actual
 contents in NAND flash. Old versions of data stored in
 flash pages shouldn't be erased by a garbage collector until their
@@ -1421,8 +1416,6 @@ minimal I/O stack interventions. Fig.~\ref{fig:platform}(c)
 illustrates a block diagram of our experimental setup with the
 open-channel SSDs.
 
-
-%\subsection{Experimental Results}
 
 \section{Experiment}
 
