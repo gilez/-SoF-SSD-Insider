@@ -246,7 +246,7 @@
 % respect to the quality of the end results, all users are strongly
 % advised to use an enhanced (at the very least that provided by array.sty)
 % set of table tools. array.sty is already installed on most systems. The
-% latest version and documentation can be obtained at:
+% latest version and documentation can be obtained at:https://www.sharelatex.com/project/5981d7990ddd7476e4e812af
 % http://www.ctan.org/tex-archive/macros/latex/required/tools/
 
 
@@ -394,25 +394,25 @@
 
 
 % author names and affiliations % use a multiple column layout for up to three different % affiliations 
-\author{\IEEEauthorblockN{SungHa Baek} \IEEEauthorblockA{Inha University\\
-sungha@seclab.inha.ac.kr}
-\and
-\IEEEauthorblockN{Youngdon Jung}
-\IEEEauthorblockA{DGIST\\
-youngdon@dgist.ac.kr}
-\and
-\IEEEauthorblockN{Aziz Mohaisen}
-\IEEEauthorblockA{University of Central Florida\\
-mohaisen@ucf.edu}
-\and
-\IEEEauthorblockN{Sungjin Lee}
-\IEEEauthorblockA{DGIST\\
-sungjin.lee@dgist.ac.kr}
-\and
-\IEEEauthorblockN{DaeHun Nyang}
-\IEEEauthorblockA{Inha University\\
-nyang@inha.ac.kr}
-}
+%\author{\IEEEauthorblockN{SungHa Baek} \IEEEauthorblockA{Inha University\\
+%sungha@seclab.inha.ac.kr}
+%\and
+%\IEEEauthorblockN{Youngdon Jung}
+%\IEEEauthorblockA{DGIST\\
+%youngdon@dgist.ac.kr}
+%\and
+%\IEEEauthorblockN{Aziz Mohaisen}
+%\IEEEauthorblockA{University of Central Florida\\
+%mohaisen@ucf.edu}
+%\and
+%\IEEEauthorblockN{Sungjin Lee}
+%\IEEEauthorblockA{DGIST\\
+%sungjin.lee@dgist.ac.kr}
+%\and
+%\IEEEauthorblockN{DaeHun Nyang}
+%\IEEEauthorblockA{Inha University\\
+%nyang@inha.ac.kr}
+%}
 % conference papers do not typically use \thanks and this command
 % is locked out in conference mode. If really needed, such as for
 % the acknowledgment of grants, issue a \IEEEoverridecommandlockouts
@@ -467,7 +467,41 @@ nyang@inha.ac.kr}
 
 \begin{abstract}
 %\boldmath
-This paper presents \ours{} that will be accepted by NDSS '18.
+Ransomware is malware that encrypts victim's data, 
+where the decryption key is released after a ransom is paid by the data owner to the attacker.
+Recently, many ransomware attacks were reported, making anti-ransomware a crucial issue in the security research community.  
+In this paper, we take a new approach to defending against ransomware inside SSD. 
+To realize the idea of defense-inside-SSD, two challenging problems should be solved:
+both a lightweight detection algorithm and a perfect recovery algorithm 
+to be used as a part of firmware of SSD should be developed. 
+To detect accurately ransomware activity, 
+we propose a new set of behavioral features on 
+ransomware's overwriting pattern, which is invariant across various ransomwares 
+and is lightweight enough to be extracted from block I/O request header only, not seeing the payload.
+By presenting various experimental results with real ransomware samples and various applications, 
+the feature set is shown to be strong indicators of ransomware activity. 
+For perfect and instant recovery, we propose using the delayed deletion feature of SSD, 
+which is intrinsic to SSD.
+To show the feasibility, the detection and the recovery algorithms are implemented 
+as a part of firmware in an open-channel SSD as a working prototype called \ours{}.
+Our prototype of \ours{}, connected to an x86 host via PCIe, with a custom FPGA controller, 
+offers a total capacity of 512 GB and I/O performance comparable to commercial PCIe SSDs.
+Using eight real ransomwares plus two in-house ransomwares 
+with various background applications running,
+we evaluate \ours{} in terms of performance and overhead.
+%detection accuracy, detection latency, 
+%recovery time, and data consistency. Also, we look into \ours{}'s cost in terms of
+%I/O elapsed time, garbage collection, and DRAM requirement. 
+Evaluation results show that \ours{}'s detection accuracy is 0\% FRR and 5\% FAR in the worst case
+when heavy overwriting resembling ransomware's activity such as data wiping occurs.
+Its detection latency is at most 10s. \ours{} recovers instantly an infected SSD within 1s with 0\% data loss. 
+The extra software overheads incurred by the \ours{} (including both the ransomware detection and
+recovery) is just 147 $n$s and 254 $n$s for 4-KB reads and writes, respectively, 
+which is negligible considering NAND chip latencies (50-500 $\mu$s). 
+Garbage collection overhead under the average-case scenario
+was almost zero extra page copies. In the worst case (at 90\% utilization),
+22\% more page copies, on average, is observed.
+The amount of memory for \ours{} is only 40.03MB. 
 \end{abstract}
 % IEEEtran.cls defaults to using nonbold math in the Abstract.
 % This preserves the distinction between vectors and scalars. However,
@@ -494,106 +528,88 @@ This paper presents \ours{} that will be accepted by NDSS '18.
 
 \section{Introduction}
 
-Ransomware is a kind of malware that holds a user's data hostage to
-collect ransom.  To extort ransom from a person, it encrypts data
-by a strong encryption algorithm, and the decryption key is
-released only when the ransom is paid.  Ransomwares usually work
-over C\&C network, and the ransom is paid by a cryptocurrency such
-as the bitcoin, so it is very hard to track down criminals.
-Combined with cryptocurrency and anonymous network over the
-Internet, building ransomwares becomes a profitable business.  In
-2017, for example, when the Nayana web hosting firm in Korea was
-attacked by a crypto ransomware called Erebus, more than 3,400 web
-sites were damaged according to KISA (Korea Internet and Security
-Agency), and it had to pay  \$1.14 million to the hacker in three
-installments to get the key for the passwords, but could not
-recover perfectly~\cite{zdnet}.  Similar attack was in the US. In
-2016, when the Hollywood Presbyterian Medical Center in the US was
-infected by a crypto ransomware, it had to pay 40 bitcoins (about
-\$17,000) to the attacker after 10 days of not being able to
+Ransomware, a type of malicious software (malware) that holds a user's data hostage to
+collect ransom, has been on the rise.  To extort ransom from data owners, ransomware encrypts data
+using strong encryption algorithms, and the decryption keys are
+released only when the ransom is paid by the data owners.  Ransomware tries to subvert standard malware defenses by using  complex command and control (C\&C) networks that utilize anonymous communication systems such as Tor, and by collecting ransom using cryptocurrency, such
+as bitcoin, which is very difficult to track.
+The high potential financial gains to attackers and difficulty of defending against ransomwares make them  a ``profitable business'' to cybercriminals.  For example, the Nayana web hosting firm in South Korea was attacked by a crypto ransomware called Erebus in
+2017, where more than 3,400 web
+sites were affected according to the Korea Internet and Security
+Agency (KISA); Nayana paid 1.14 million USD to the hacker in three
+installments to get the key and recover the hacked data, and even then could not totally recover the data~\cite{zdnet}.  Similar attacks were reported in the US. For example, in 2016, the Hollywood Presbyterian Medical Center was
+infected by a crypto ransomware, and had to pay 40 bitcoins (about
+\$17,000 at that time) to the attacker after 10 days of not being able to
 operate because it could not access patients’ medical
-records~\cite{everette16}.  Symantec reported 100 ransomwares were
-found in 2015, and the average ransom was USD 679 at the end of
-2016, which is double of that in 2015.  Also, the industry that
-ransomwares aim at is not limited to service sectors with 38
-percent of organizational infections, but also manufacturing
-sectors with 17 percent of infections~\cite{symantec16}.
+records~\cite{everette16}.  Per Symantec~\cite{symantec16}, more than 100 ransomwares were reported in 2015, and the average ransom was 679 USD at the end of
+2016, doubling from that of a year earlier.  All economy sectors are targets of ransomware, where organizational infections represented  38\% and manufacturing
+sectors had 17\% of infections in 2015.
 
-Ransomwares are typically classified in two groups: locker and
+Ransomwares are generally classified in two groups: locker and
 crypto ransomwares.  Locker ransomware prevents users from
-accessing to an infected machine, while crypto ransomware such as
-WannaCry, CryptoWall, TeslaCrypt (a.k.a. AlphaCrypt), and Locky locks
-user's data to prevent the user from accessing files. 
-Most of newly discovered ransomwares in
-2016 are crypto ransomware, whereas around 80 percent were crypto
-ransomwares in 2015~\cite{symantec16}.  Therefore, more attention
-should be paid to crypto ransomwares, and in this paper, our target
-is not locker but crypto ransomwares.
+accessing an infected machine, while crypto ransomwares, such as
+WannaCry, CryptoWall, TeslaCrypt (a.k.a. AlphaCrypt) and Locky, lock
+users' data by encrypting the data to prevent users' data access. 
+Most of the newly discovered ransomwares in 2016 were crypto ransomware, compared to 80\% of crypto
+ransomwares in 2015~\cite{symantec16}.  As such, more attention should be paid to crypto ransomwares and their defenses, which is the focus of this work.
 
-There have been many research works on ransomware detection and
-analysis mostly in the application level.  Some works focus on
-ransomware's behavior using structural entropy and Hidden Markov
-Model~\cite{canfora16} or behavior to use high volume of encryption
-system calls~\cite{andronio15}.  Most of the works are, however,
-software tools running in the application layer, monitoring changes
+There have been several excellent  attempts to address ransomware by analysis and detection, although mostly at the application level.  Some of such attempts focus on
+ransomware's behavioral analysis using structural entropy and Hidden Markov
+Models~\cite{canfora16} or behavioral characterization in using a high volume of encryption
+system calls~\cite{andronio15}.  Most  such attempts, however, resulted in
+software tools running in the application layer, and monitoring changes
 of files' metadata such as file name, file size, magic number, or
 changes of file contents~\cite{scaife16,andronio15,kim94}.  The
 most notable works among file monitoring tools were Unveil and
 CryptoDrop~\cite{scaife16,kharaz}, which are an early-warning
-detection system of ransomware's suspicious behavior.  However, the
-application-level monitoring has some limitations: 1) It cannot
+detection system of ransomwares' suspicious behavior.  However, while promising, the
+application-level monitoring as an approach has multiple limitations. First, this approach cannot
 prevent ransomware activities unless a user has installed a vaccine
-software. It is obvious that victims of ransomwares had not their
-computers installed any anti-ransomware software. 2) Data loss is
+software, and it is clear that  ransomwares victims  had not installed any anti-ransomware software to start with. Second, data loss is
 unavoidable, because files that have been encrypted before the
-detector recognizes the attack cannot be recovered. Thus, one of
-the most important evaluation criteria is detection latency.  3)
-The application-level monitoring consumes a lot of resources. It
-has to monitor every IO and every file system modification.
-Sometimes, to detect a ransomware feature, it constantly involves
-file IOs, which will negatively impact the system performance. 4)
-Because most of the ransomwares are developed to target Microsoft
-Windows operating systems, defense against the attack for other
-operating systems such as Linux and MacOS has not been relatively
-well studied.  Therefore, a universal application-level defense
+detector recognizes the attack cannot be recovered, making one of
+the most important evaluation criteria the detection latency.  Third, 
+the application-level monitoring consumes a lot of resources, requiring a monitoring of every IO and file system modification, which will negatively impact the system performance. Fourth, because most of the ransomwares are developed to target Microsoft
+Windows operating systems, defenses suited for other
+operating systems, such as Linux and MacOS, have not been studied
+well yet.  Therefore, a universal application-level defense
 system cannot be developed, but multiple versions of the defense
 system should be developed considering the unique features of each
 platform (file system, operating system, hardware configuration,
 etc.).  
 
-In this paper, we propose a novel approach to ransomware detection
-and recovery by introducing a concept of NAND flash internal
+In this paper, we propose a new approach to ransomware detection
+and recovery by introducing the concept of NAND flash internal
 defense technology.  By introducing six invariant features of
 ransomware and by taking advantage of SSD's out-of-place nature, we
 develop a behavior-based detection and recovery system that runs
 inside flash-based SSDs as a form of storage firmware.  Being
-equipped with ransomware detection and recovery algorithms from the
+equipped with ransomware detection and recovery algorithms in the
 first place, flash-based SSDs can effectively detect ransomwares'
-activity and can perfectly recover user's data,
-1) even when a user does not run any ransomware monitoring application,
-2) even when OS or middleware does not execute any ransomware monitoring task,
-3) even when it works for an unknown OS, an unknown file system and unknown applications, and
-4) even when it confronts with unknown ransomwares.
+activity and can perfectly recover user's data, even
+1) when a user does not run any ransomware monitoring application,
+2) when the OS (or middleware) does not execute any ransomware monitoring task,
+3) when it works for an unknown OS, an unknown file system and unknown applications, and
+4) when it confronts previously unknown ransomwares.
 
-We realize the ransomware detection/recovery algorithms in a
+We realize the ransomware detection and recovery algorithms in a
 system, called \textit{SSD-Insider}, which works as a universal
-platform for ransomware detection and recovery, and deliver the
+platform for ransomware detection and recovery. In this paper, we deliver the
 following contributions:
 \begin{itemize}
-\item We designed six invariant features to capture ransomware's
-behavioral characteristics only with a block address, a size, and
-a type of an IO request to an SSD, and analyzed a correlation
-between those features and ransomware activities using various
+\item We design six invariant features to capture ransomwares'
+behavioral characteristics. We use the block address, size, and
+type of an IO request to an SSD, and analyzed their correlation
+with ransomware activities using various
 real-world ransomwares.
-\item A simple machine learning algorithm, the binary decision tree
-with ID3 (Iterative Dichotomiser 3), was shown to be good enough
-for ransomware detection~\cite{quinlan86}.
+\item We build a machine learning technique for detecting ransomware using a binary decision tree
+with ID3 (Iterative Dichotomiser 3)~\cite{quinlan86}.
 \item To show the feasibility of our system inside an SSD, we
-implemented \ours{} using an open-channel SSD platform as a working
+implement \ours{} using an open-channel SSD platform as a working
 prototype.
-\item For realistic assessment, we evaluated \ours{} using eight
-well-known ransomwares and in-house ransomwares in the condition
-that various background applications were running.  Our
+\item For realistic assessment, we evaluate \ours{} using eight
+well-known ransomwares and in-house ransomwares. We assume
+that various background applications were running while attempting to detect the ransomwares.  Our
 implementation of \ours{} showed 100\% detection accuracy, and its
 detection latency was less than 10 seconds. 
 \item \ours{} recovered encrypted files within 1 second after its
@@ -601,7 +617,7 @@ detection, and no data loss was found after the recovery even with
 detection latency.
 \item Because \ours{} is built as an extra function of a flash
 translation layer (FTL), a data recovery is not dependent upon any
-means of backup, but upon delayed deletion of flash blocks which is
+means of backup, but upon the delayed deletion of flash blocks, which is
 an intrinsic feature of NAND flash memory.
 \end{itemize}
 
@@ -698,11 +714,11 @@ problems:
 	\centering
     %\subfigure[Correlation between active period of ransomware and the number of overwritings for one second ($=OWIO$)\label{fig-owio-cor}]{\includegraphics[width=0.24\textwidth]{fig/det-fig2a.png}}
 	%\subfigure[Cummulative values of overwritings\label{fig-owio-acc}]{\includegraphics[width=0.24\textwidth]{fig/det-fig1a.png}}
-    \subfigure[Ransomware overwriting behavior\label{fig-owio-cor}]{\includegraphics[width=0.24\textwidth]{fig/det-fig2a.png}}
-	\subfigure[Overwriting frequency\label{fig-owio-acc}]{\includegraphics[width=0.24\textwidth]{fig/det-fig1a.png}}
+    \subfigure[Ransomware action vs. overwriting frequency. \label{fig-owio-cor}]{\includegraphics[width=0.238\textwidth]{fig/det-fig2a.png}}
+	\subfigure[Ransomware and normal app's cummulative overwriting frequencies\label{fig-owio-acc}]{\includegraphics[width=0.238\textwidth]{fig/det-fig1a.png}}
 	\caption{Ransomware's overwriting behavior (WannaCry, Jaff, Mole, and CryptoShield ransomwares):
-	(a) Correlation between active period of ransomware and the number of overwritings for one second ($=OWIO$), and 
-	(b) Cummulative values of overwritings\label{fig-owio}}
+	(a) There is a strong correlation between active period of ransomware and the number of overwritings per second ($=OWIO$), and 
+	(b) Cummulative values of overwritings show that ransomware does overwriting very frequently.\label{fig-owio}}
 \end{figure}
 
 Our approach to address two issues is to use overwriting patterns 
@@ -720,8 +736,8 @@ Fig.~\ref{fig-owio-cor} shows how long WannaCry and Mole ransomwares were in act
 during 1-second time slices when overwriting frequency varies. It shows that the more frequent overwriting occurs, 
 the longer WannCry and Mole have been in action.
 Fig.~\ref{fig-owio-acc} shows the cumulative graph of the number of overwriting requests for four ransomware 
-(WannaCry, Jaff, Mole, and CryptoShield) and four normal applications (Data wiping, P2P download, 
-Cloud storage, and compression). Here, ransomwares have relatively high growth rate compared to the normal
+(WannaCry, Jaff, Mole, and CryptoShield) and four normal applications (data wiping, P2P download, 
+cloud storage synchronization, and compression). Here, ransomwares have relatively high growth rate compared to the normal
 application processes. Especially, WannaCry and Mole stand out, but the other two ransomwares Jaff 
 and CryptoShield have relatively low growth rate, so it seems to be hard to distinguish them from the normal
 applications. Even so, it is quite obvious that ransomwares cannot but permanently delete victim files by 
@@ -830,7 +846,7 @@ before being erased.
 	\subfigure[Cummulative values of $AVGWIO$ \label{fig-avgwio-acc}]{\includegraphics[width=0.24\textwidth]{fig/det-fig1d.png}}
 \subfigure[Correlation between active period of ransomware and $IO$\label{fig-io}]{\includegraphics[width=0.24\textwidth]{fig/det-fig2f.png}}
 \subfigure[Correlation between active period of ransomware and $OWSLOPE$\label{fig-sl}]{\includegraphics[width=0.24\textwidth]{fig/det-fig2e.png}}
-\caption{Six ransomware features capture ransomware's behavioral characteristics.}\label{fig-op}
+\caption{Six ransomware features capture ransomware's behavioral characteristics (See also Fig.~\ref{fig-owio} for $OWIO$).}\label{fig-op}
 \end{figure*}
 
 
@@ -842,7 +858,7 @@ and deleting and overwriting the original file (Class C).
 Considering that 
 attacker's chances to get ransom become higher when original files cannot be recovered,
 it is necessary to ``overwrite'' the original files either by the encrypted contents
-or by random contents, and in deed any type of ransomware we collected 
+or by random contents, and indeed any type of ransomware we collected 
 was observed to conduct overwriting immediately after reading and encrypting 
 the victim files. From another point of view, the overwriting is a kind of 
 ``unrecoverable permanent erasure'' conducted by a ransomware. The overwriting should be performed 
@@ -854,7 +870,7 @@ Not only in order to capture ransomware's behavioral characteristics
 as to the overwriting pattern of ransomware,
 but also to find features distinguishing ransomware from normal applications with similar overwriting behavior,
 we conducted experiment to run several ransomwares and applications 
-(data-wiping, DB update, IO stress test, \etc) in a sandbox and found
+(data wiping, DB update, IO stress test, \etc) in a sandbox and found
 the following six features (four principal features and two secondary ones), 
 where overwriting is, throughout this paper, 
 limited to only those overwritings on the blocks 
@@ -867,7 +883,7 @@ where $N$ is a parameter relevant to detection speed and accuracy:
 \item $PWIO$ is the number of overwritings for a time window consisting of $N$ time slices.
 \item $AVGWIO$ is the average length of continuously overwritten blocks in a current time window.
 \item $OWSLOPE$ is the fraction of the number of overwritings during a current time slice
-over the total number of overwritings over the previous time slice.
+over the average number of overwritings over the previous time window.
 \item $IO$ is the fraction of the number of overwritings during a current time slice 
 over the average number of writings over the previous time slice
 \end{itemize}
@@ -878,8 +894,7 @@ Fig.~\ref{fig-owio-cor} shows how long WannaCry and Mole ransomwares were in act
 during 1-second windows varying the value of $OWIO$. 
 It shows that the more frequent overwriting occurs, the longer WannaCry and Mole have been in action.
 Also, the overwriting frequency of normal applications, as can be seen in Fig.~\ref{fig-owio-acc}, 
-is not as high (less than 100K) as that of ransomwares except data wiping application, 
-which will be treated in section~\ref{sec:accuracy}.
+is not as high (less than 100K) as that of ransomwares except data wiping application. 
 This supports our claim that heavy overwriting follows reading operation within a short duration,
 when ransomwares are active. We utilize $OWIO$, the overwriting frequency as one of indicators of ransomware.
 This feature, however, can also be observed during normal program execution such as DB update
@@ -909,13 +924,13 @@ Also, the strong correlation between $OWST$ and the active period of ransomware 
 while a ransomware is in action.
 In this case, the speed of ransomware slows down, and thus, 
 IO requests of ransomware are dispersed over 
-rather a long time span. For example, Jeff is so slow to be detected by $OWIO$ and $OWST$.
+rather a long time span. For example, Jaff is too slow to be detected by $OWIO$ and $OWST$.
 However, $PWIO$, the accumulated number of overwritings 
 during a longer-term window (10s) instead of a short-term slice (1s) of $OWIO$ 
 captures it very well as shown in Fig.~\ref{fig-pwio-acc}. Also, its correlation is 
 shown to be strong with the ransomware activity period as shown in Fig.~\ref{fig-pwio-cor}.
 
-{\bf AVGWIO:} $AVGWIO$ captures the characteristics of ransomware's attack target. 
+{\bf AVGWIO:} $AVGWIO$ captures the run-length characteristics of ransomware's attack target. 
 Because ransomware mainly targets documents and images, 
 it does not involve overwriting operations
 over many continuous blocks unlike data wiping, defragmentation, and DB update.  
@@ -929,7 +944,7 @@ Their correlations with ransomware's active period are shown in Fig.~\ref{fig-io
 Fig.~\ref{fig-sl}.
 
 Fig.~\ref{fig-op} show that the six features capture well enough ransomware's behavioral characteristics
-to distinguish from applications having similar behavior such as data-wiping, cloud storage sync, DB update, etc.
+to distinguish from applications having similar behavior such as data wiping, cloud storage sync, DB update, etc.
 Using only one feature might miss the active ransomware, 
 and thus we took a machine learning approach not to miss 
 ransomware activity or to maximize detection accuracy using all the six features. 
@@ -937,7 +952,7 @@ Using IO data trace collected during ransomware's active period,
 a machine learning algorithm is trained with the above six features. 
 Here, we note that the training algorithm does not use the IO requests' payload, 
 but uses only the request type (R/W), logical block addresses, timestamps, and the sizes.
-The training algorithm is executed on a server to generate a model as an output.
+The training algorithm is executed on a PC to generate a model as an output.
 The model will be embedded in the firmware of SSD.
 Owing to the resource limitation and to the tight timebound characteristics of SSD system,
 we utilized a binary decision tree, instead of using more powerful machine learning
@@ -979,7 +994,7 @@ A request is denoted by IOReq, and Length is assumed to be 1.
 A {\em time window} (in our experiment, it was 10s.) is defined over I/O requests as a duration of monitoring
 to detects periodically suspicious behavior of ransomware.
 It consists of $N$ time slices, and it slides by the time slice (\eg 1s) at every check point.
-To evaluate values of the six features, we build a counting table that basically stores IOReq's run length of overwriting. 
+To evaluate values of the six features, we build a counting table that basically stores IOReq's run-length of overwriting. 
 During a time slice, \ours{} counts IOReq, and updates the counting table according to the counting value and LBA.
 The counting table consists of entries that store each consecutive overwriting. 
 An entry is composed of Time, LBA, RL, and WL. 
@@ -1001,7 +1016,7 @@ $OWST$ is the current time slice's $OWIO$ divided by $WIO$.
 Finally, $OWSLOPE$ is the value of $OWIO$ divided by $PWIO$ as shown in \textcircled{3} of Fig.~\ref{fig-slw}.
 
 
-{\bf Basic functions:} By example, how to keep track of run length of 
+{\bf Basic functions:} By example, how to keep track of run-length of 
 overwriting during each time slice and window is described in Fig.~\ref{fig-update}.  
 IOReqs used in this example are assumed to have (IOMode, LBA) and Length is 1
 for explanation. 
@@ -1042,7 +1057,7 @@ At check point 2 ($t=2$), $OWIO$ is 1, which means that overwriting occurred onc
 Since $WIO$ is 2, $OWST$ is 0.5 because it is $OWIO$ / $WIO$. 
 The number of entries is 2 and the total sum of WL is 1, and thus, $AVGWIO$ is 1/2. 
 IOReqs for the next time slice ($t=2s-3s$) are treated the same as before. 
-IOReq's examples of the last time slice ($t=2s-3s$) shows how MergeEntry function works.
+IOReq's examples of the last time slice ($t=3s-4s$) shows how MergeEntry function works.
 IOReq (2, W) updates the entry with LBA 1 by UpdateEntryW function. 
 Now, LBA1 and LBA2 have been all overwritten, and WL is set to 2. 
 Also, there is a entry having a consecutive LBA next to them, and thus,
@@ -1065,7 +1080,7 @@ the previous checkpoint divided by the current $OWIO$.
         \IF {req$_i$ is write-req}
             \IF {there is a read entry for req$_i$ in the counting table}
                 \STATE UpdateEntryW()
-                \IF {all lba in the entry is not overwritten}
+                \IF {not all lba before req$_i$ in the entry are overwritten}
                     \STATE SplitEntry()
                 \ENDIF
                 \IF {there is an entry overlapped}
@@ -1346,17 +1361,17 @@ the existing FTL under the average- and the worst-case scenarios, respectively.
 		\multicolumn{3}{c}{For testing}\\
 		\hline 
 		Ransom only & none & WannaCry \\ 
-		Heavy overwriting & Dropbox & In-house (outplace) \\
-		Heavy overwriting & WPM & GlobeImposter \\
-		Heavy overwriting & MySQL & In-house (inplace) \\ 
-		IO-intensive & IOMeter & CryptoShield \\ 
+		Heavy overwriting & Dropbox (CloudStorage) & In-house (outplace) \\
+		Heavy overwriting & WPM (DataWiping) & GlobeImposter \\
+		Heavy overwriting & MySQL (Database) & In-house (inplace) \\ 
+		IO-intensive & IOMeter (IOStress) & CryptoShield \\ 
 		CPU-intensive & Bandizip (Compression) & Mole \\ 
 		CPU-intensive & Pot encoder (VideoEncode) & Jaff \\ 
 		Normal App & AutoCAD/VisualStudio (Install) & GlobeImposter\\ 
 		Normal App & Pot player (VideoDecode) & WannaCry \\ 
 		Normal App & OutlookSync & Mole \\ 
-		Normal App & BitTorrent & WannaCry \\ 
-		Normal App & Chrome & GlobeImposter \\ 
+		Normal App & BitTorrent (P2PDown) & WannaCry \\ 
+		Normal App & Chrome (WebSurfing) & GlobeImposter \\ 
 		\hline
 	\end{tabular}
 	\label{tab:benchmarks}
@@ -1410,7 +1425,7 @@ open-channel SSDs.
         \subfigure[CloudStorage+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-2.png}}
         \subfigure[DataWiping+GlobeImposter\label{fig-accuracy-dw}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-3.png}}
         \subfigure[Install+GlobeImposter\label{fig-accuracy-in}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-4.png}}
-        \subfigure[Database+In-house\label{fig-accuracy-db}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-5.png}}
+        \subfigure[Database Update+In-house\label{fig-accuracy-db}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-5.png}}
         \subfigure[VideoDecode+WannaCry]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-6.png}}
         \subfigure[OutlookSync+Mole]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-7.png}}
         \subfigure[P2PDown+WannaCry]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-8.png}}
@@ -1500,7 +1515,8 @@ However, as can be seen in Fig.~\ref{fig:accuracy}, even in four scenarios invol
 data wiping, and software install, \ours{} detected very accurately for the threshold value 3.
 With the threshold value 3, FRRs in all scenarios were 0\%, but FARs were not 0\%, which means that
 \ours{} did not miss any ransomware activity, but sometimes falsely recognized normal application's activity as 
-that of ransomware. This might interrupt users but it would rarely happen with at most FAR 5\% as shown
+that of ransomware. This might interrupt users, but it would rarely happen with heavy DB update, 
+data wiping, and software install even at most FAR 5\% as shown
 in Fig.~\ref{fig-accuracy-dw}, Fig.~\ref{fig-accuracy-in}, and Fig.~\ref{fig-accuracy-db}.
 
 {\bf Detection latency:}
@@ -1697,7 +1713,7 @@ but this can be resolved by monitoring overwriting behavior from FTL update.
 Instead of maintaining read accesses in \ours{}'s counting table, we can take advantage of
 FTL's mapping table to see whether a certain write request is for overwriting or for fresh write.
 All the six invariant feature values can be calculated by maintaining only those counters such
-as the total IO, the overwriting counters, and the run lengths over a time window.
+as the total IO, the overwriting counters, and the run-lengths over a time window.
 This off-loading enables \ours{} to use a larger time window without concerning memeory overhead, 
 and allows it long-term monitoring, which in turn makes \ours{} strong against the imaginary ransomware 
 with the delayed overwriting strategy. We leave the investigation of off-loading issues for future work.
@@ -1756,7 +1772,6 @@ ransomware attack happen simultaneously.
 
 \section{Related Work}
 
-\subsection{Related works on ransomware}\label{sec:rel-ran}
 
 Crypto-ransomwares have been evolving into many variants mainly for two purposes: 
 to avoid being detected and to hinder recovery by anti-ransomware software. 
@@ -1840,8 +1855,6 @@ A pre-OS approach was proposed by Kaspersky Lab. but it runs with a file system 
 running by block-lelvel~\cite{gusarov14}.
 
 
-
-\subsection{Related work on flash recovery}
 While there have been a number of studies that have attempted to
 improve the performance and lifetime of NAND flash-based
 SSDs~\cite{kim2002space, seong2010hydra}, relatively little
@@ -1868,7 +1881,7 @@ Park \textit{et al.} have presented a brief concept of
 self-defensible SSDs, claiming that the backup capability of SSDs
 would be effective to protect user data from ransomware
 attacks~\cite{paikposter}. The basic idea of self-defensible SSDs
-is similar to that of SoF, but it has several limitations in that
+is similar to that of \ours{}, but it has several limitations in that
 it does not take into account various technical issues that must be
 properly dealt with to realize/create/bring about defensible SSDs.
 First of all, it did not present any detailed detection algorithms
@@ -1878,22 +1891,35 @@ a complete FTL design combined with ransomware detection and data
 recovery, thus it is impossible to evaluate its implementation
 feasibility in resource-constrained environments like/such as SSDs.  
 
-We have exhaustively evaluated the accuracy of ransomware detection
-algorithms using several real-world ransomware programs and have
-confirmed that the encryption attacks from ransomware running on
-the host can be detected with high accuracy at the SSD device level
-by monitoring block I/O traffic. We have also verified that the
-detection algorithm exhibits high accuracy even when ransomware and
-ordinary programs run simultaneously. Last but not least, we have
-implemented the ransomware detection and recovery algorithms in our
-in-house SSD platform and found that their impact on I/O
-performance is negligible; data persistence/consistency is
-unaffected. 
+Our work is different from others in that 1) we presented a new
+behavioral feature set of ransomware and a machine learning-based 
+detection algorithm using the features, and
+2) we proved, by implementing \ours{} in in-house SSD platform, 
+that the encryption attacks from ransomware running on the host 
+can be defeated quickly by detecting ransomware's activity and recovering infected data 
+at the SSD device level.
 
 
 \section{Conclusion}
-
-
+In this paper, we have proposed a new set of behavioral features of 
+ransomware, which is invariant across various ransomwares 
+and lightweight enough to be used in a resource-limited embedded 
+environment such as a firmware of SSD.
+By presenting various experimental results, the features have been shown to be
+strong indicators of ransomware activity. 
+These features were used to develop a ransomware detection algorithm.
+Also, we have developed a perfect recovery algorithm of infected blocks 
+using the delayed deletion feature of SSD, which is intrinsic to SSD.
+To show the feasibility, the detection and the recovery algorithms were implemented 
+as a part of firmware in an open-channel SSD as a working prototype called \ours{}.
+With eight real-world ransomwares and various background applications running,
+we have evaluated \ours{} in terms of detection accuracy, detection latency, 
+recovery time, and data consistency. Also, we scrutinized \ours{}'s cost in terms of
+I/O elapsed time, garbage collection, and DRAM requirement. All the evaluation results
+show that \ours{} is accurate and fast for detection, and 
+it can perfectly recover an infected SSD in a second without any data loss.  
+\ours{} opens another direction of anti-ransomware research, and further defense and 
+recovery algorithms on other malicious wares are left for future works.
 
 % conference papers do not normally have an appendix
 
