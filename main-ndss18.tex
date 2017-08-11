@@ -486,7 +486,7 @@ To show the feasibility, the detection and the recovery algorithms are implement
 as a part of firmware in an open-channel SSD as a working prototype called \ours{}.
 Our prototype of \ours{}, connected to an x86 host via PCIe, with a custom FPGA controller, 
 offers a total capacity of 512 GB and I/O performance comparable to commercial PCIe SSDs.
-Using eight real ransomwares plus two in-house ransomwares 
+Using eight real-world ransomwares plus two in-house ransomwares 
 with various background applications running,
 we evaluate \ours{} in terms of performance and overhead.
 %detection accuracy, detection latency, 
@@ -497,7 +497,7 @@ when heavy overwriting resembling ransomware's activity such as data wiping occu
 Its detection latency is at most 10s. \ours{} recovers instantly an infected SSD within 1s with 0\% data loss. 
 The extra software overheads incurred by the \ours{} (including both ransomware detection and
 recovery) is just 147 $n$s and 254 $n$s for 4-KB reads and writes, respectively, 
-which is negligible considering NAND chip latencies (50-500 $\mu$s). 
+which is negligible considering NAND chip latency (50-500 $\mu$s). 
 Garbage collection overhead under the average-case scenario
 was almost zero extra page copies. In the worst case (at 90\% utilization),
 22\% more page copies, on average, is observed.
@@ -713,12 +713,12 @@ problems:
 \begin{figure}
 	\centering
     %\subfigure[Correlation between active period of ransomware and the number of overwritings for one second ($=OWIO$)\label{fig-owio-cor}]{\includegraphics[width=0.24\textwidth]{fig/det-fig2a.png}}
-	%\subfigure[Cummulative values of overwritings\label{fig-owio-acc}]{\includegraphics[width=0.24\textwidth]{fig/det-fig1a.png}}
+	%\subfigure[Cumulative values of overwritings\label{fig-owio-acc}]{\includegraphics[width=0.24\textwidth]{fig/det-fig1a.png}}
     \subfigure[Ransomware action vs. overwriting frequency. \label{fig-owio-cor}]{\includegraphics[width=0.238\textwidth]{fig/det-fig2a.png}}
-	\subfigure[Ransomware and normal app's cummulative overwriting frequencies\label{fig-owio-acc}]{\includegraphics[width=0.238\textwidth]{fig/det-fig1a.png}}
+	\subfigure[Ransomware and normal app's cumulative overwriting frequencies\label{fig-owio-acc}]{\includegraphics[width=0.238\textwidth]{fig/det-fig1a.png}}
 	\caption{Ransomware's overwriting behavior (WannaCry, Jaff, Mole, and CryptoShield ransomwares):
 	(a) There is a strong correlation between active period of ransomware and the number of overwritings per second ($=OWIO$), and 
-	(b) Cummulative values of overwritings show that ransomware does overwriting very frequently.\label{fig-owio}}
+	(b) Cumulative values of overwritings show that ransomware does overwriting very frequently.\label{fig-owio}}
 \end{figure}
 
 Our approach to address two issues is to use overwriting patterns 
@@ -934,7 +934,7 @@ shown to be strong with the ransomware activity period as shown in Fig.~\ref{fig
 Because ransomware mainly targets documents and images, 
 it does not involve overwriting operations
 over many continuous blocks unlike data wiping, defragmentation, and DB update.  
-Thus, the length of continously overwritten blocks is relatively shorter than that of those applications, which is shown in Fig.~\ref{fig-avgwio-acc}. Its correlation with the active 
+Thus, the length of continuously overwritten blocks is relatively shorter than that of those applications, which is shown in Fig.~\ref{fig-avgwio-acc}. Its correlation with the active 
 period is shown in Fig.~\ref{fig-avgwio-cor}.
 
 {\bf Secondary features:} These four features are the principal features for \ours{}.
@@ -954,7 +954,7 @@ Here, we note that the training algorithm does not use the IO requests' payload,
 but uses only the request type (R/W), logical block addresses, timestamps, and the sizes.
 The training algorithm is executed on a PC to generate a model as an output.
 The model will be embedded in the firmware of SSD.
-Owing to the resource limitation and to the tight timebound characteristics of SSD system,
+Owing to the resource limitation and to the tight time-bound characteristics of SSD system,
 we utilized a binary decision tree, instead of using more powerful machine learning
 algorithms such as support vector machine or even deep learning.
 For the training algorithm of the tree, we used ID3~\cite{quinlan86}.
@@ -1881,8 +1881,8 @@ used the visual appearance for ransomware campaign. Kharaz \etal
 similarly detected successfully ``screen locker'' by observing a
 persistent desktop message~\cite{kharaz}.
 
-A pre-OS approach was proposed by Kaspersky Lab. but it runs with a
-file system instead of running by block-level~\cite{gusarov14}.
+%A pre-OS approach was proposed by Kaspersky Lab. but it runs with a
+%file system instead of running by block-level~\cite{gusarov14}.
 
 While there have been a number of studies that have attempted to
 improve the performance and lifetime of NAND flash-based
