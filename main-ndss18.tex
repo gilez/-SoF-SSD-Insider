@@ -1535,41 +1535,49 @@ and Fig.~\ref{fig-accuracy-db}.
 }
 
 {\bf Detection latency:}
-$N$, the size of the time window determines \ours{}'s accuracy and latency. 
-There is a trade-off between them, that is, if we increase $N$, the accuracy gets better, but the detection latency
-increases. For a small $N$, we can detect faster, but with lower accuracy as shown in Fig.~\ref{fig:latency}. 
-In the figure, we measured detection accuracy with threshold 3 varying the length of time window. 
-If $N$ is 10s, ransomwares in all scenarios were detected 100\%. 
-The detection algorithm using $N<10$ could not detect perfectly ransomware in some scenarios having 
-CPU-intensive and IO-intensive background applications such as compression and IOStress as shown in 
-Fig.~\ref{fig-latency-io} and Fig.~\ref{fig-latency-cpu}. 
-Otherwise, most of them were detected successfully with a time window of $N=7,8,9$.
-For example, $N=8$ was enough for data wiping and database applications with similar overwriting behavior
-as shown in Fig.~\ref{fig-latency-heavy}.
+$N$, the size of the time window determines \ours{}'s accuracy and
+latency.  There is a trade-off between them, that is, if we
+increase $N$, the accuracy gets better, but the detection latency
+increases. For a small $N$, we can detect faster, but with lower
+accuracy as shown in Fig.~\ref{fig:latency}.  In the figure, we
+measured detection accuracy with threshold 3 varying the time
+window length.  If $N$ is 10s, ransomwares in all the scenarios
+were detected 100\%.  The detection algorithm using $N<10$ could
+not detect perfectly ransomware in some scenarios having
+CPU-intensive and IO-intensive background applications such as
+Compression and IOStress as shown in Fig.~\ref{fig-latency-io} and
+Fig.~\ref{fig-latency-cpu}.  Otherwise, most of them were detected
+successfully with a time window of $N=7,8,9$.  For example, $N=8$
+was enough for data wiping and database applications with similar
+overwriting behavior as shown in Fig.~\ref{fig-latency-heavy}.
 
 {\bf Recovery time:}
 We assess how long it takes to recover infected SSDs. For the 12
-traces where ransomware activities were included, we measured the
-elapsed time from when ransomware was detected to when infected
-SSDs were recovered to a clean status. Fig.~\ref{fig:flash-recovery}
-summarizes our experimental results. Even though there were
-differences depending on the traces, the elapsed times to fully
-recover SSDs were less than 1 second. As expected, this is due to
-the fact that \ours{} only modifies the mapping table in DRAM
-for data recovery, avoiding physical copies of data in NAND flash.
-For some traces like CloudStorage, Compression, and VideoEncode, \ours{}
-shows relatively long recovery times compared with the other ones.
-In our observation, those traces wrote a large amount of data just
-before the ransomware was detected. Thus, when the recovery module
-was activated, it examined many items in the recovery queue which must
-be examined to roll-back infected mapping entries into safe ones.
+scenarios where ransomware activities were included, we measured
+the elapsed time from when ransomware was detected to when infected
+SSDs were recovered to a clean status.
+Fig.~\ref{fig:flash-recovery} summarizes our experimental results.
+Even though there were differences depending on the scenarios, the
+elapsed times to fully recover SSDs were less than 1 second. As
+expected, this is due to the fact that \ours{} only modifies the
+mapping table in DRAM for data recovery, avoiding physical copies
+of data in NAND flash.  For some traces like CloudStorage,
+Compression, and VideoEncode, \ours{} shows relatively long
+recovery times compared with the other ones.  In our observation,
+those traces wrote a large amount of data just before the
+ransomware was detected. Thus, when the recovery module was
+activated, it found many items in the recovery queue which must be
+examined to roll back infected mapping entries into safe ones.
 However, even with such workloads with long queue lengths, recovery
 times are short enough.
 
 \begin{figure}[t] 
 	\centering 
 	\includegraphics[width=0.42\textwidth]{exp/recovery/fig}
-	\caption{Total elapsed times taken to recover ransomware-infected SSDs with various background applications} 
+	\caption{
+Total elapsed times taken to recover ransomware-infected SSDs with
+various background applications
+} 
 	\label{fig:flash-recovery} 
 \end{figure}
 
@@ -1581,8 +1589,8 @@ operations and required users to reboot the system for data
 recovery.  To understand how well file-system consistency was
 maintained after a sudden system reboot caused by ransomware,  we
 ran real ransomware atop the file system mounted to our flash
-platform depicted in Fig.~\ref{fig:platform} (instead of
-trace-driven evaluations).  For exhaustive evaluation, we repeated
+platform depicted in Fig.~\ref{fig:platform}, instead of
+trace-driven evaluations.  For exhaustive evaluation, we repeated
 self-infection tests 100 times.  We used a custom ransomware we
 developed for Linux -- it mimics the common behaviors of well-known
 ransomware programs and infected larger than 1 GB files at an
@@ -1600,8 +1608,8 @@ experimental results according to the type of file-system
 corruptions. We also checked if all the infected files were rolled
 back to unencrypted versions. Our results in
 Table~\ref{tab:flash-consist} confirm that infected SSDs
-successfully return to a consistent status with no encrypted files
-left.
+successfully returned to a consistent status with no encrypted
+files left.
 
 \begin{table}[t]
 	\centering
