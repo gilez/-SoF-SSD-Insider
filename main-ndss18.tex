@@ -839,11 +839,11 @@ before being erased.
 \begin{figure*}[t]
 \centering
     \subfigure[Correlation between active period of ransomware and $OWST$\label{fig-owst-cor}]{\includegraphics[width=0.24\textwidth]{fig/det-fig2b.png}}
-	\subfigure[Cummulative values of $OWST$ \label{fig-owst-acc}]{\includegraphics[width=0.24\textwidth]{fig/det-fig1b.png}}
+	\subfigure[Cumulative values of $OWST$ \label{fig-owst-acc}]{\includegraphics[width=0.24\textwidth]{fig/det-fig1b.png}}
     \subfigure[Correlation between active period of ransomware and $PWIO$\label{fig-pwio-cor}]{\includegraphics[width=0.24\textwidth]{fig/det-fig2c.png}}
-	\subfigure[Cummulative values of $PWIO$ \label{fig-pwio-acc}]{\includegraphics[width=0.24\textwidth]{fig/det-fig1c.png}}
+	\subfigure[Cumulative values of $PWIO$ \label{fig-pwio-acc}]{\includegraphics[width=0.24\textwidth]{fig/det-fig1c.png}}
     \subfigure[Correlation between active period of ransomware and $AVGWIO$\label{fig-avgwio-cor}]{\includegraphics[width=0.24\textwidth]{fig/det-fig2d.png}}
-	\subfigure[Cummulative values of $AVGWIO$ \label{fig-avgwio-acc}]{\includegraphics[width=0.24\textwidth]{fig/det-fig1d.png}}
+	\subfigure[Cumulative values of $AVGWIO$ \label{fig-avgwio-acc}]{\includegraphics[width=0.24\textwidth]{fig/det-fig1d.png}}
 \subfigure[Correlation between active period of ransomware and $IO$\label{fig-io}]{\includegraphics[width=0.24\textwidth]{fig/det-fig2f.png}}
 \subfigure[Correlation between active period of ransomware and $OWSLOPE$\label{fig-sl}]{\includegraphics[width=0.24\textwidth]{fig/det-fig2e.png}}
 \caption{Six ransomware features capture ransomware's behavioral characteristics (See also Fig.~\ref{fig-owio} for $OWIO$).}\label{fig-op}
@@ -980,7 +980,7 @@ For the training algorithm of the tree, we used ID3~\cite{quinlan86}.
 	\centering
 	\subfigure[Counting table holds the run-length of overwritings for each time slice.\label{fig-slw}]{\includegraphics[width=0.44\textwidth]{fig/notation.png}}
 	\subfigure[Counting table update example using basic functions (NewEntry, UpdateEntryR, SplitEntry, UpdateEntryW, and MergeEntry) \label{fig-update}]{\includegraphics[width=0.5\textwidth]{fig/tableupdate.png}}
-	\caption{Design of \ours{} }
+	\caption{Design of \ours{}: data structure and working examples}
 \end{figure*}
 
 \begin{algorithm}[t]
@@ -1078,7 +1078,7 @@ and $OWIO$ is 0 because there was no overwriting.
 
 \begin{figure}
 	\includegraphics[width=0.45\textwidth]{fig/windowupdate.png}
-	\caption{Update window and detect ransomware activity}\label{fig-sw}
+	\caption{Sliding time window and detecting ransomware activity}\label{fig-sw}
 \end{figure}
 After sliding the time window at checkpoint 1, the fourth IOReq (1,R) is received at 
 $t=1$. The IOReq is dropped because there is already an entry of the LBA (Line 26). 
@@ -1431,7 +1431,7 @@ open-channel SSDs.
         \subfigure[CloudStorage+In-house]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-2.png}}
         \subfigure[DataWiping+GlobeImposter\label{fig-accuracy-dw}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-3.png}}
         \subfigure[Install+GlobeImposter\label{fig-accuracy-in}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-4.png}}
-        \subfigure[Database Update+In-house\label{fig-accuracy-db}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-5.png}}
+        \subfigure[Database+In-house\label{fig-accuracy-db}]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-5.png}}
         \subfigure[VideoDecode+WannaCry]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-6.png}}
         \subfigure[OutlookSync+Mole]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-7.png}}
         \subfigure[P2PDown+WannaCry]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-8.png}}
@@ -1440,8 +1440,9 @@ open-channel SSDs.
         \subfigure[Compression+Mole]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-11.png}}
         \subfigure[VideoEncode+Jaff]{\includegraphics[width=0.22\textwidth]{fig/exp-det-far-12.png}}
         \caption{\ours{}'s detection accuracy varying the score during a time window (10s):
-        the higher the score (or, the frequency of the decision tree reports ransomware activity for a time window) is,
-        the higher the probability of successful detection is.}
+        When the threshold score (or, the threshold frequency of the decision tree's reporting of ransomware activity 
+        for a time window) is set to 3, FRR is 0\% and FAR is at most 5\% 
+        only when heavy overwriting such as data wiping, database update, and software installation occurs.}
         \label{fig:accuracy}
 \end{figure*}
 \begin{figure*}[t]
