@@ -1384,18 +1384,19 @@ the existing FTL under the average- and the worst-case scenarios, respectively.
 \end{table}
 
 \section{Implementation}
-We have implemented \ours{}'s detection and recovery algorithm in
+We have implemented \ours{}'s detection and recovery algorithms in
 our in-house open-channel SSD prototype, which is illustrated in
-Figure~\ref{fig:platform}.  Our in-house flash card, connected to a
-x86 host through a high-speed PCIe interface, is composed of 8
-channels and 8 ways with a custom FPGA controller, offering a total
-capacity of 512 GB. It also provides fairly high performance, 700
-MB/s for writes and 1.2 GB/s for reads, which is comparable to
-commercial PCIe SSDs.  To evaluate \ours{} in terms of performance
-and overhead, we used an evaluation platform which was equipped
-with Intel's Xeon quad-core processor running at 3.0 GHz and 4 GB
-DDR4 DRAM. Ubuntu 16.04 with the Linux kernel 4.10 was used as a
-host operating system.  
+Figure~\ref{fig:platform}.  Our in-house flash card was composed of
+8 channels and 8 ways with a custom flash controller implemented in
+FPGA.  It offered a total capacity of 512 GB, providing fairly high
+performance, 700 MB/s for writes and 1.2 GB/s for reads, which was
+comparable to commercial PCIe SSDs.  To evaluate \ours{} in terms
+of performance and overhead, we used a x86 host as an evaluation
+platform which was equipped with Intel's Xeon quad-core processor
+running at 3.0 GHz and 4 GB DDR4 DRAM.  The our SSD card was
+connected to the x86 host through a high-speed PCIe interface.
+Ubuntu 16.04 with the Linux kernel 4.10 was used as a host
+operating system.  
 
 Unlike off-the-shelf SSDs that do not allow us to directly modify
 the FTL algorithm inside, the open-channel SSD platform enables us
@@ -1467,14 +1468,14 @@ github~\cite{virgang,poc} -- one of them has an `in-place update'
 encryption attack; the other is based on an `out-of-place update'.
 To evaluate \ours{}'s performance, we set up the environment where
 ransomware ran with typical background applications, including
-{\color{red}three disturbing application types}: applications with high rate of
+three disturbing application types: applications with high rate of
 overwriting, CPU-intensive, and IO-intensive applications. While
 heavy overwriting applications confuse our detector,
 CPU/IO-intensive applications disturb the detector by slowing down
 ransomware's activity.  Even the normal application class included
 applications with relatively high IO compared to user's casual
-usage pattern.  {\color{red}The background applications were divided into four
-types}: 1) Heavy overwriting type includes data wiping tool (WPM
+usage pattern.  The background applications were divided into four
+types: 1) Heavy overwriting type includes data wiping tool (WPM
 satisfying DoD 5220.22-M), cloud storage synchronization (Dropbox),
 and heavy database update (MySQL 5.5), 2) IO-intensive type
 includes IO stress tools such as IOMeter, HDtunepro,
@@ -1486,11 +1487,11 @@ SQLite activities (Kakaotalk), and software installation such as
 Viusal studio 2015 and AutoCAD 2016.
 
 Various combinations of a ransomware and a background application
-were used for training decision trees with ID3, and also for
+were used for learning decision trees with ID3, and also for
 performance evaluation.  The whole dataset and evaluation scenarios
 for the experiment are summarized in Table~\ref{tab:benchmarks}.
-{\color{red}For evaluation, experiment with each combination was conducted 20
-times, and the average was taken}.  We also note that as shown in
+For evaluation, experiment with each combination was conducted 20
+times, and the average was taken.  We also note that as shown in
 the table no ransomware for training is included for testing to
 show how accurately and promptly \ours{} detects unknown
 ransomwares.
