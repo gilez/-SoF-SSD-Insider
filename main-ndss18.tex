@@ -1509,22 +1509,30 @@ under the same I/O behaviors.
 
 \subsection{Performance evaluation}\label{sec:peval}
 {\bf Ransomware detection accuracy:}
-To evaluate the accuracy of SSD-Insider detection algorithms,
-%Combinations of a ransomware and a normal software for realistic evaluation are summarized in Table~\ref{tab:benchmarks}.
-we measured FAR and FRR of the detection algorithm varying the threshold of the score value (or the frequency of the
-decision tree reports ransomware activity for a time window) to detect ransomware. 
-Fig.~\ref{fig:accuracy} summarizes our experimental results on accuracy in terms of FAR/FRR. 
-Even though there is some variation depending on a scenario, for the threshold less than 3, 
-the detection algorithm could detect ransomware's activity accurately under all types of background applications. 
-We report that the worst background noise came from compression (CPU-intensive job) and IOStress (IO-intensive job).
-That is, they interfered with ransomware to slow down the speed of overwriting by heavy usage of CPU and IO.
-However, as can be seen in Fig.~\ref{fig:accuracy}, even in four scenarios involving IOStress, database activity, 
-data wiping, and software install, \ours{} detected very accurately for the threshold value 3.
-With the threshold value 3, FRRs in all scenarios were 0\%, but FARs were not 0\%, which means that
-\ours{} did not miss any ransomware activity, but sometimes falsely recognized normal application's activity as 
-that of ransomware. This might interrupt users, but it would rarely happen with heavy DB update, 
-data wiping, and software install even at most FAR 5\% as shown
-in Fig.~\ref{fig-accuracy-dw}, Fig.~\ref{fig-accuracy-in}, and Fig.~\ref{fig-accuracy-db}.
+{color{blue}
+To evaluate the accuracy of SSD-Insider detection algorithms, we
+measured FAR and FRR of the detection algorithm varying the
+threshold of the score value (or the frequency of which the
+decision tree reports ransomware activity for a time window) to
+detect ransomware.  Fig.~\ref{fig:accuracy} summarizes our
+experimental results on accuracy in terms of FAR/FRR.  Even though
+there is some variation depending on a scenario, for the threshold
+less than 3, the detection algorithm could detect ransomware's
+activity accurately under all types of background applications.  We
+report that the worst background noise came from CPU- and
+IO-intensive jobs.  That is, they interfered with ransomware to
+slow down the speed of overwriting by heavy usage of CPU and IO.
+However, as can be seen in Fig.~\ref{fig:accuracy}, even in such
+heavy CPU and IO usage scenarios, \ours{} detected very accurately
+for the threshold value 3.  With the threshold value 3, FRRs in all
+scenarios were 0\%, but FARs were not 0\%, which means that \ours{}
+did not miss any ransomware activity, but sometimes falsely
+recognized normal application's activity as that of ransomware.
+This might interrupt users, but it would rarely happen with heavy
+DB update, data wiping, and software install even at most FAR 5\%
+as shown in Fig.~\ref{fig-accuracy-dw}, Fig.~\ref{fig-accuracy-in},
+and Fig.~\ref{fig-accuracy-db}.
+}
 
 {\bf Detection latency:}
 $N$, the size of the time window determines \ours{}'s accuracy and latency. 
