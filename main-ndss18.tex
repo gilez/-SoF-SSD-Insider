@@ -1880,9 +1880,6 @@ used the visual appearance for ransomware campaign. Kharaz \etal
 similarly detected successfully ``screen locker'' by observing a
 persistent desktop message~\cite{kharaz}.
 
-A pre-OS approach was proposed by Kaspersky Lab. but it runs with a
-file system instead of running by block-level~\cite{gusarov14}.
-
 While there have been a number of studies that have attempted to
 improve the performance and lifetime of NAND flash-based
 SSDs~\cite{kim2002space, seong2010hydra}, relatively little
@@ -1892,7 +1889,7 @@ prevent files from being lost by threats from hacker and ransomware
 attacks~\cite{paikposter}.
 
 Kim \textit{et al.} have proposed a timeshift FTL scheme that
-enables users to rollback the state of a file system to a
+enables users to roll back the state of a file system to a
 previously saved snapshot~\cite{ltftl}. The timeshift FTL is
 similar to the proposed \ours{} in that it utilizes the address
 remapping feature of the FTL for quick recovery of snapshot data.
@@ -1901,7 +1898,7 @@ select victim blocks that are holding storage snapshots. By doing
 this, storage snapshots can be kept in NAND flash for data recovery
 until explicit user requests arrive to get rid of them. The
 timeshift FTL, however, is not designed to utilize the backup
-ability of SSDs to protect user data from ransomware attacks – it
+ability of SSDs to protect user data from ransomware attacks -- it
 neither detects ransomware behaviors nor recovers data encrypted by
 ransomware. 
 
@@ -1909,23 +1906,23 @@ Park \textit{et al.} have presented a brief concept of
 self-defensible SSDs, claiming that the backup capability of SSDs
 would be effective to protect user data from ransomware
 attacks~\cite{paikposter}. The basic idea of self-defensible SSDs
-is similar to that of \ours{}, but it has several limitations in that
-it does not take into account various technical issues that must be
-properly dealt with to realize/create/bring about defensible SSDs.
-First of all, it did not present any detailed detection algorithms
-capable of identifying unique I/O behaviors of ransomwares
-different from those of normal applications. Also, it did not show
-a complete FTL design combined with ransomware detection and data
-recovery, thus it is impossible to evaluate its implementation
-feasibility in resource-constrained environments like/such as SSDs.  
+is similar to that of \ours{}, but it has several limitations in
+that it does not take into account various technical issues that
+must be properly dealt with to realize defensible SSDs.  First of
+all, it did not present any detailed detection algorithms capable
+of identifying unique I/O behaviors of ransomwares different from
+those of normal applications. Also, it did not show a complete FTL
+design combined with ransomware detection and data recovery, thus
+it is impossible to evaluate its implementation feasibility in
+resource-constrained environments such as SSDs.  
 
 Our work is different from others in that 1) we presented a new
-behavioral feature set of ransomware and a machine learning-based 
-detection algorithm using the features, and
-2) we proved, by implementing \ours{} in in-house SSD platform, 
-that the encryption attacks from ransomware running on the host 
-can be defeated quickly by detecting ransomware's activity and recovering infected data 
-at the SSD device level.
+behavioral feature set of ransomware and a machine learning-based
+detection algorithm using the features, and 2) we proved, by
+implementing \ours{} in our in-house SSD platform, that the
+encryption attacks from ransomware running on the host can be
+defeated quickly by detecting ransomware's activity and recovering
+infected data at the SSD device level.
 
 
 \section{Conclusion}
